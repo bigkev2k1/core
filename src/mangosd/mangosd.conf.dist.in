@@ -1423,3 +1423,19 @@ SOAP.Enabled = 0
 SOAP.IP = 127.0.0.1
 SOAP.Port = 7878
 
+###################################################################################################################
+# EXTERNAL MAIL QUEUE
+#
+#    ExternalMail.Enabled
+#        Enable external mail delivery
+#        Default: 0 (disabled)
+#                 1 (enabled)
+#
+#    ExternalMail.Interval
+#        Interval at which to process the external mail queue (In minutes)
+#        Default: 1 minute
+#
+###################################################################################################################
+
+ExternalMail.Enabled = 0
+ExternalMail.Interval = 1
