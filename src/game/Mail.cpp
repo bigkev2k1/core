@@ -1118,6 +1118,9 @@ void WorldSession::SendExternalMails()
             {
                 DETAIL_LOG("EXTMAIL> Adding %u of item with id %u", itemCount, itemId);
                 Item* mailItem = Item::CreateItem( itemId, itemCount, receiver );
+                if ( mailItem->GetCount() < itemCount )
+                    sLog.outError("EXTMAIL> itemCount is %u but max stack size for this item is %u", itemCount, mailItem->GetCount());
+
                 mailItem->SaveToDB();
                 mail->AddItem(mailItem);
             }
