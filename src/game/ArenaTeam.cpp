@@ -36,10 +36,18 @@ ArenaTeam::ArenaTeam()
     m_stats.games_week    = 0;
     m_stats.games_season  = 0;
     m_stats.rank          = 0;
-    if (sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID) >= 6)
-        m_stats.rating    = 0;
+
+    int32 conf_value = sWorld.getConfig(CONFIG_INT32_ARENA_STARTRATING);
+    if (conf_value < 0)                                     // -1 = select by season id
+    {
+        if (sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID) >= 6)
+            m_stats.rating    = 0;
+        else
+            m_stats.rating    = 1500;
+    }
     else
-        m_stats.rating    = 1500;
+        m_stats.rating = uint32(conf_value);
+
     m_stats.wins_week     = 0;
     m_stats.wins_season   = 0;
 }
@@ -56,7 +64,7 @@ bool ArenaTeam::Create(uint64 captainGuid, uint32 type, std::string ArenaTeamNam
     if(sObjectMgr.GetArenaTeamByName(ArenaTeamName))            // arena team with this name already exist
         return false;
 
-    sLog.outDebug("GUILD: creating arena team %s to leader: %u", ArenaTeamName.c_str(), GUID_LOPART(captainGuid));
+    DEBUG_LOG("GUILD: creating arena team %s to leader: %u", ArenaTeamName.c_str(), GUID_LOPART(captainGuid));
 
     m_CaptainGuid = captainGuid;
     m_Name = ArenaTeamName;
@@ -134,17 +142,25 @@ bool ArenaTeam::AddMember(const uint64& PlayerGuid)
     newmember.games_week        = 0;
     newmember.wins_season       = 0;
     newmember.wins_week         = 0;
-    if (sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID) >= 6)
+
+    int32 conf_value = sWorld.getConfig(CONFIG_INT32_ARENA_STARTPERSONALRATING);
+    if (conf_value < 0)                                     // -1 = select by season id
     {
-        if (m_stats.rating < 1000)
-            newmember.personal_rating = 0;
+        if (sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID) >= 6)
+        {
+            if (m_stats.rating < 1000)
+                newmember.personal_rating = 0;
+            else
+                newmember.personal_rating = 1000;
+        }
         else
-            newmember.personal_rating = 1000;
+        {
+            newmember.personal_rating = 1500;
+        }
     }
     else
-    {
-        newmember.personal_rating = 1500;
-    }
+        newmember.personal_rating = uint32(conf_value);
+
     m_members.push_back(newmember);
 
     CharacterDatabase.PExecute("INSERT INTO arena_team_member (arenateamid, guid, personal_rating) VALUES ('%u', '%u', '%u')", m_TeamId, GUID_LOPART(newmember.guid), newmember.personal_rating );
@@ -347,7 +363,7 @@ void ArenaTeam::Roster(WorldSession *session)
     }
 
     session->SendPacket(&data);
-    sLog.outDebug("WORLD: Sent SMSG_ARENA_TEAM_ROSTER");
+    DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_ROSTER");
 }
 
 void ArenaTeam::Query(WorldSession *session)
@@ -362,7 +378,7 @@ void ArenaTeam::Query(WorldSession *session)
     data << uint32(m_BorderStyle);                          // border style
     data << uint32(m_BorderColor);                          // border color
     session->SendPacket(&data);
-    sLog.outDebug("WORLD: Sent SMSG_ARENA_TEAM_QUERY_RESPONSE");
+    DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_QUERY_RESPONSE");
 }
 
 void ArenaTeam::Stats(WorldSession *session)
@@ -448,7 +464,7 @@ void ArenaTeam::SetStats(uint32 stat_type, uint32 value)
             CharacterDatabase.PExecute("UPDATE arena_team_stats SET rank = '%u' WHERE arenateamid = '%u'", value, GetId());
             break;
         default:
-            sLog.outDebug("unknown stat type in ArenaTeam::SetStats() %u", stat_type);
+            DEBUG_LOG("unknown stat type in ArenaTeam::SetStats() %u", stat_type);
             break;
     }
 }
@@ -491,7 +507,7 @@ void ArenaTeam::BroadcastEvent(ArenaTeamEvents event, uint64 guid, uint8 strCoun
 
     BroadcastPacket(&data);
 
-    sLog.outDebug("WORLD: Sent SMSG_ARENA_TEAM_EVENT");
+    DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_EVENT");
 }
 
 uint8 ArenaTeam::GetSlotByType( uint32 type )
