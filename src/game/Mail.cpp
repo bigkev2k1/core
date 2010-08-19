@@ -1105,8 +1105,7 @@ void WorldSession::SendExternalMails()
                 }
 
                 // create new mail
-                uint32 itemTextId = !message.empty() ? sObjectMgr.CreateItemText( message ) : 0;
-                mail = new MailDraft( subject, itemTextId );
+                mail = new MailDraft( subject, message );
 
                 if(money)
                 {
