@@ -1060,13 +1060,13 @@ void MailDraft::SendMailTo(MailReceiver const& receiver, MailSender const& sende
  */
 void WorldSession::SendExternalMails()
 {
-    sLog.outString("EXTERNAL MAIL> Sending mails in queue...");
+    BASIC_LOG("EXTERNAL MAIL> Sending mails in queue...");
 
     //                                                    0     1           2          3          4        5       6
     QueryResult *result = CharacterDatabase.Query("SELECT e.id, e.receiver, e.subject, e.message, e.money, i.item, i.count FROM mail_external e LEFT JOIN mail_external_items i ON e.id = i.mail_id ORDER BY e.id;");
     if(!result)
     {
-        sLog.outString("EXTERNAL MAIL> No mails in queue...");
+        BASIC_LOG("EXTERNAL MAIL> No mails in queue...");
         delete result;
         return;
     }
@@ -1097,11 +1097,11 @@ void WorldSession::SendExternalMails()
                 // send mail
                 if (last_id != 0)
                 {
-                    sLog.outString("EXTERNAL MAIL> Sending mail to character with guid %d", last_receiver_guid);
+                    DETAIL_LOG("EXTERNAL MAIL> Sending mail with id %u to character with guid %d", last_id, last_receiver_guid);
                     mail->SendMailTo( MailReceiver(last_receiver_guid), MailSender(MAIL_NORMAL, 0, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_RETURNED);
                     delete mail;
-                    CharacterDatabase.PExecute("DELETE mail_external AS e, mail_external_items AS i FROM mail_external AS e, mail_external_items AS i WHERE i.mail_id = e.id AND e.id = %u;", last_id);
-                    sLog.outString("EXTERNAL MAIL> Mail sent");
+                    CharacterDatabase.PExecute("DELETE mail_external AS e, mail_external_items AS i FROM mail_external AS e, mail_external_items AS i WHERE i.mail_id = %u OR e.id = %u;", last_id, last_id);
+                    BASIC_LOG("EXTERNAL MAIL> Mail sent");
                 }
 
                 // create new mail
@@ -1109,14 +1109,14 @@ void WorldSession::SendExternalMails()
 
                 if(money)
                 {
-                    sLog.outString("EXTERNAL MAIL> Adding money");
+                    DETAIL_LOG("EXTERNAL MAIL> Adding money");
                     mail->AddMoney(money);
                 }
             }
 
             if (itemId)
             {
-                sLog.outString("EXTERNAL MAIL> Adding %u of item with id %u", itemCount, itemId);
+                DETAIL_LOG("EXTERNAL MAIL> Adding %u of item with id %u", itemCount, itemId);
                 Item* mailItem = Item::CreateItem( itemId, itemCount, receiver );
                 mailItem->SaveToDB();
                 mail->AddItem(mailItem);
@@ -1132,15 +1132,15 @@ void WorldSession::SendExternalMails()
         if (last_id != 0)
         {
             // send last mail
-            sLog.outString("EXTERNAL MAIL> Sending mail to character with guid %d", last_receiver_guid);
+            DETAIL_LOG("EXTERNAL MAIL> Sending mail with id %u to character with guid %d", last_id, last_receiver_guid);
 
             mail->SendMailTo( MailReceiver(last_receiver_guid), MailSender(MAIL_NORMAL, 0, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_RETURNED);
             delete mail;
-            CharacterDatabase.PExecute("DELETE mail_external AS e, mail_external_items AS i FROM mail_external AS e, mail_external_items AS i WHERE i.mail_id = e.id AND e.id = %u;", last_id);
-            sLog.outString("EXTERNAL MAIL> Mail sent");
+            CharacterDatabase.PExecute("DELETE mail_external AS e, mail_external_items AS i FROM mail_external AS e, mail_external_items AS i WHERE i.mail_id = %u OR e.id = %u;", last_id, last_id);
+            BASIC_LOG("EXTERNAL MAIL> Mail sent");
         }
     }
 
     delete result;
-    sLog.outString("EXTERNAL MAIL> All Mails Sent...");
+    BASIC_LOG("EXTERNAL MAIL> All Mails Sent...");
 }
