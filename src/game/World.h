@@ -78,7 +78,8 @@ enum WorldTimers
     WUPDATE_CORPSES     = 5,
     WUPDATE_EVENTS      = 6,
     WUPDATE_DELETECHARS = 7,
-    WUPDATE_COUNT       = 8
+    WUPDATE_EXT_MAIL    = 8,
+    WUPDATE_COUNT       = 9
 };
 
 /// Configuration elements
@@ -198,6 +199,9 @@ enum eConfigUInt32Values
     CONFIG_UINT32_AHBOT_TG_MIN_SKILL_RANK,
     CONFIG_UINT32_AHBOT_TG_MAX_SKILL_RANK,
     /* End AHBot */
+    // External Mail
+    CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL,
+
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -357,14 +361,17 @@ enum eConfigBoolValues
     CONFIG_BOOL_AHBOT_BUYPRICE_BUYER,
 	/* End AHBot */
     CONFIG_BOOL_VMAP_INDOOR_CHECK,
-    CONFIG_BOOL_VALUE_COUNT,
     
     /// Darkrulerz' Customs
     // PvP Token
     CONFIG_BOOL_PVP_TOKEN_ENABLE,
     // PvP Announcer
-    CONFIG_BOOL_PVP_ANNOUNCER
-    /// Darkrulerz' Customs
+    CONFIG_BOOL_PVP_ANNOUNCER,
+    // External Mail
+    CONFIG_BOOL_EXTERNAL_MAIL_ENABLED,
+	/// Darkrulerz' Customs
+
+    CONFIG_BOOL_VALUE_COUNT
 };
 
 /// Can be used in SMSG_AUTH_RESPONSE packet

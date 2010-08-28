@@ -1719,3 +1719,20 @@ PvPAnnouncer.Enable = 1
 PvPAnnouncer.ColorKiller = |CFFFFFF01
 PvPAnnouncer.ColorKilled = |CFFFFFF01
 PvPAnnouncer.ColorArea = |CFFFE8A0E
+
+###################################################################################################################
+# EXTERNAL MAIL QUEUE
+#
+#    ExternalMail.Enabled
+#        Enable external mail delivery
+#        Default: 0 (disabled)
+#                 1 (enabled)
+#
+#    ExternalMail.Interval
+#        Interval at which to process the external mail queue (In minutes)
+#        Default: 1 minute
+#
+###################################################################################################################
+
+ExternalMail.Enabled = 0
+ExternalMail.Interval = 1

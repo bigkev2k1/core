@@ -938,6 +938,10 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_AHBOT_TG_MAX_REQ_LEVEL       , "AuctionHouseBot.Tradegoods.ReqLevel.Max"     , 0);
     setConfig(CONFIG_UINT32_AHBOT_TG_MIN_SKILL_RANK      , "AuctionHouseBot.Tradegoods.ReqSkill.Min"     , 0);
     setConfig(CONFIG_UINT32_AHBOT_TG_MAX_SKILL_RANK      , "AuctionHouseBot.Tradegoods.ReqSkill.Max"     , 0);
+
+    // External Mail
+    setConfig(CONFIG_BOOL_EXTERNAL_MAIL_ENABLED     , "ExternalMail.Enabled"    , false);
+    setConfig(CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL  , "ExternalMail.Interval"   , 1);
 }
 
 /// Initialize the World
@@ -1354,6 +1358,8 @@ void World::SetInitialWorldSettings()
                                                             //Update "uptime" table based on configuration entry in minutes.
     m_timers[WUPDATE_CORPSES].SetInterval(3*HOUR*IN_MILLISECONDS);
     m_timers[WUPDATE_DELETECHARS].SetInterval(DAY*IN_MILLISECONDS); // check for chars to delete every day
+	
+    m_timers[WUPDATE_EXT_MAIL].SetInterval(m_configUint32Values[CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL] * MINUTE * IN_MILLISECONDS); // External mail
 
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
@@ -1578,6 +1584,13 @@ void World::Update(uint32 diff)
         uint32 nextGameEvent = sGameEventMgr.Update();
         m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);
         m_timers[WUPDATE_EVENTS].Reset();
+    }
+
+    ///- Process External Mail Queue when necessary
+    if(m_configBoolValues[CONFIG_BOOL_EXTERNAL_MAIL_ENABLED] && m_timers[WUPDATE_EXT_MAIL].Passed())
+    {
+        WorldSession::SendExternalMails();
+        m_timers[WUPDATE_EXT_MAIL].Reset();
     }
 
     /// </ul>
