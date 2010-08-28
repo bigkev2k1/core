@@ -389,7 +389,15 @@ void Unit::SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, SplineTy
     }
 
     data << uint32(flags);                                  // splineflags
-    data << uint32(moveTime);                               // Time in between points
+    if (flags & SPLINEFLAG_TRAJECTORY)
+    {
+        data << uint32(moveTime); 
+        data << float(va_arg(vargs,double));
+        data << uint32(0); // walk time after jump
+    }
+    else
+        data << uint32(moveTime);                              // Time in between points
+
     data << uint32(1);                                      // 1 single waypoint
     data << NewPosX << NewPosY << NewPosZ;                  // the single waypoint Point B
 
