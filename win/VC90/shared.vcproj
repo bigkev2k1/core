@@ -666,6 +666,14 @@
 				RelativePath="..\..\src\shared\WorldPacket.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\src\shared\DelayExecutor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\shared\DelayExecutor.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Config"
