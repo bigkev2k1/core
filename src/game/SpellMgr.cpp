@@ -816,6 +816,7 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
                 }   break;
                 case SPELL_AURA_ADD_FLAT_MODIFIER:          // mods
                 case SPELL_AURA_ADD_PCT_MODIFIER:
+				case SPELL_AURA_PERIODIC_DUMMY:
                 {
                     // non-positive mods
                     switch(spellproto->EffectMiscValue[effIndex])
