@@ -2660,12 +2660,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 			{
 				if (!unitTarget)
 					return;
-			uint32 spellId = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0);
+			
+				uint32 spellId = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0);
 
-			unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), spellId, true);
-				return;
+				unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), spellId, true);
+					return;
 			}
-
             break;
         }
     }
