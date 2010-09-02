@@ -787,6 +787,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(m_caster,69956,true,NULL);
                     return;
                 }
+                case 7669:                                  //Belthor's Potion
+                {
+                    SpellAuraHolder* hexOfRavenclaw = m_caster->GetSpellAuraHolder(7656);
+                    if(hexOfRavenclaw)
+                    {
+                        m_caster->RemoveAurasDueToSpell(7656);
+                    }
+                    return;
+                }
                 case 8063:                                  // Deviate Fish
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
