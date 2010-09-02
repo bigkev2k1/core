@@ -953,6 +953,127 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                 case 63320:
                     triggered_spell_id = 63321;
                     break;
+                //Deathbringer's Will
+                case 71519:
+                case 71562:
+                {
+                    uint32 version = dummySpell->Id;
+                    std::vector<uint32> spell_ids;
+                    switch(getClass())
+                    {
+                        case CLASS_WARRIOR:
+                        case CLASS_PALADIN:
+                        case CLASS_DEATH_KNIGHT:
+                        {
+                            if(version == 71519)
+                            {
+                                if(!HasAura(71491) || !HasAura(71484) || !HasAura(71492))
+                                {
+                                    spell_ids.push_back(71491);                                    
+                                    spell_ids.push_back(71484);
+                                    spell_ids.push_back(71492);
+                                }
+                            }
+                            else
+                            {
+                                if(!HasAura(71559) || !HasAura(71561) || !HasAura(71560))
+                                {
+                                    spell_ids.push_back(71559);
+                                    spell_ids.push_back(71561);
+                                    spell_ids.push_back(71560);
+                                }
+                            }
+                            break;
+                        }
+                        case CLASS_ROGUE:
+                        case CLASS_SHAMAN:
+                        {
+                            if(version == 71519)
+                            {
+                                if(!HasAura(71485) || !HasAura(71486) || !HasAura(71492))
+                                {
+                                    spell_ids.push_back(71485);
+                                    spell_ids.push_back(71486);
+                                    spell_ids.push_back(71492);
+                                }
+                            }
+                            else
+                            {
+                                if(!HasAura(71556) || !HasAura(71558) || !HasAura(71560))
+                                {
+                                    spell_ids.push_back(71556);
+                                    spell_ids.push_back(71558);
+                                    spell_ids.push_back(71560);
+                                }
+                            }
+                            break;
+                        }
+                        case CLASS_HUNTER:
+                        {
+                            if(version == 71519)
+                            {
+                                if(!HasAura(71485) || !HasAura(71486) || !HasAura(71491))
+                                {
+                                    spell_ids.push_back(71485);
+                                    spell_ids.push_back(71486);
+                                    spell_ids.push_back(71491);
+                                }
+                            }
+                            else
+                            {
+                                if(!HasAura(71556) || !HasAura(71558) || !HasAura(71559))
+                                {
+                                    spell_ids.push_back(71556);
+                                    spell_ids.push_back(71558);
+                                    spell_ids.push_back(71559);
+                                }
+                            }
+                            break;
+                        }
+                        case CLASS_DRUID:
+                        {
+                            if(version == 71519)
+                            {
+                                if(!HasAura(71485) || !HasAura(71484) || !HasAura(71492))
+                                {
+                                    spell_ids.push_back(71485);
+                                    spell_ids.push_back(71484);
+                                    spell_ids.push_back(71492);
+                                }
+                            }
+                            else
+                            {
+                                if(!HasAura(71556) || !HasAura(71561) || !HasAura(71560))
+                                {
+                                    spell_ids.push_back(71556);
+                                    spell_ids.push_back(71561);
+                                    spell_ids.push_back(71560);
+                                }
+                            }
+                            break;
+                        }
+                        case CLASS_MAGE:
+                        case CLASS_PRIEST:
+                        case CLASS_WARLOCK:
+                        {
+                            if(version == 71519)
+                                if(!HasAura(71492))
+                                    spell_ids.push_back(71492);
+                            else
+                                if(!HasAura(71560))
+                                    spell_ids.push_back(71560);
+                            break;
+                        }
+                        default:
+                            break;            
+                    }
+                    if(uint32 spellId = spell_ids.at(irand(0,spell_ids.max_size())))
+                        triggered_spell_id = spellId;
+                    else
+                        return SPELL_AURA_PROC_FAILED;
+                    target = this;
+                    break;
+                }
                 // Item - Shadowmourne Legendary
                 case 71903:
                 {
@@ -2041,12 +2162,50 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                         RemoveAurasDueToSpell(71432);       // Mote of Anger
 
                         // Manifest Anger (main hand/off hand)
-                        CastSpell(pVictim, !haveOffhandWeapon() || roll_chance_i(50) ? 71433 : 71434, true);
+                        if (haveOffhandWeapon() && getAttackTimer(BASE_ATTACK) > getAttackTimer(OFF_ATTACK))
+                            CastSpell(getVictim(),71434,true);      //Off-hand Manifest Anger 
+                        else
+                            CastSpell(getVictim(),71433,true);      //Main-hand Manifest Anger
                         return SPELL_AURA_PROC_OK;
                     }
                     else
                         triggered_spell_id = 71432;
 
+                    break;
+                }
+                //Heartpierce proc
+                case 71880:
+                case 71892:
+                {
+                    uint32 version = dummySpell->Id;
+                    switch(getPowerType())
+                    {
+                        case POWER_MANA:
+                            if(version == 71880)
+                                triggered_spell_id = 71881;
+                            else
+                                triggered_spell_id = 71888;
+                            break;
+                        case POWER_RAGE:
+                            if(version == 71880)
+                                triggered_spell_id = 71883;
+                            else
+                                triggered_spell_id = 71886;
+                            break;
+                        case POWER_ENERGY:
+                            if(version == 71880)
+                                triggered_spell_id = 71882;
+                            else
+                                triggered_spell_id = 71887;
+                            break;
+                        case POWER_RUNIC_POWER:
+                            if(version == 71880)
+                                triggered_spell_id = 71884;
+                            else
+                                triggered_spell_id = 71885;
+                            break;
+                    }
+                    target = this;
                     break;
                 }
             }
