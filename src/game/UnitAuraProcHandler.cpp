@@ -1057,17 +1057,21 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                         case CLASS_WARLOCK:
                         {
                             if(version == 71519)
+                            {
                                 if(!HasAura(71492))
                                     spell_ids.push_back(71492);
+                            }
                             else
+                            {
                                 if(!HasAura(71560))
                                     spell_ids.push_back(71560);
+                            }
                             break;
                         }
                         default:
                             break;            
                     }
-                    if(uint32 spellId = spell_ids.at(irand(0,spell_ids.max_size())))
+                    if(uint32 spellId = spell_ids.at(irand(0,(spell_ids.max_size())-1)))
                         triggered_spell_id = spellId;
                     else
                         return SPELL_AURA_PROC_FAILED;
@@ -2181,28 +2185,16 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     switch(getPowerType())
                     {
                         case POWER_MANA:
-                            if(version == 71880)
-                                triggered_spell_id = 71881;
-                            else
-                                triggered_spell_id = 71888;
+                            triggered_spell_id = (version == 71880) ? 71881:71888;
                             break;
                         case POWER_RAGE:
-                            if(version == 71880)
-                                triggered_spell_id = 71883;
-                            else
-                                triggered_spell_id = 71886;
+                            triggered_spell_id = (version == 71880) ? 71883:71886;
                             break;
                         case POWER_ENERGY:
-                            if(version == 71880)
-                                triggered_spell_id = 71882;
-                            else
-                                triggered_spell_id = 71887;
+                            triggered_spell_id = (version == 71880) ? 71882:71887;
                             break;
                         case POWER_RUNIC_POWER:
-                            if(version == 71880)
-                                triggered_spell_id = 71884;
-                            else
-                                triggered_spell_id = 71885;
+                            triggered_spell_id = (version == 71880) ? 71884:71885;
                             break;
                     }
                     target = this;
