@@ -1098,6 +1098,19 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 case 26074:                                 // Holiday Cheer
                     // implemented at client side
                     return;
+                case 27798:                                 //Nature's Bounty
+                {
+                    uint32 spell_id = 0;
+                    switch(m_caster->getPowerType())
+                    {
+                        case POWER_MANA: spell_id = 27782; break;
+                        case POWER_RAGE: spell_id = 27783; break;
+                        case POWER_ENERGY: spell_id = 27784; break;
+                        default: break;
+                    }
+                    m_caster->CastSpell(m_caster,spell_id,true);
+                    return;
+                }
                 case 28006:                                 // Arcane Cloaking
                 {
                     if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER )
@@ -1793,6 +1806,19 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
 
                     m_caster->CastSpell(m_caster, spellShrink, true);
+                    return;
+                }
+                case 54092:                                 //Monster Slayer's Kit
+                {
+                    uint32 spell_id = 0;
+                    switch(irand(1,4))
+                    {
+                        case 1: spell_id = 51853; break;
+                        case 2: spell_id = 54063; break;
+                        case 3: spell_id = 54071; break;
+                        case 4: spell_id = 54086; break;
+                    }
+                    m_caster->CastSpell(unitTarget,spell_id,true,NULL);
                     return;
                 }
                 case 55004:                                 // Nitro Boosts

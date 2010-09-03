@@ -967,7 +967,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                         {
                             if(version == 71519)
                             {
-                                if(!HasAura(71491) || !HasAura(71484) || !HasAura(71492))
+                                if(!HasAura(71491) && !HasAura(71484) && !HasAura(71492))
                                 {
                                     spell_ids.push_back(71491);                                    
                                     spell_ids.push_back(71484);
@@ -976,7 +976,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                             }
                             else
                             {
-                                if(!HasAura(71559) || !HasAura(71561) || !HasAura(71560))
+                                if(!HasAura(71559) && !HasAura(71561) && !HasAura(71560))
                                 {
                                     spell_ids.push_back(71559);
                                     spell_ids.push_back(71561);
@@ -990,7 +990,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                         {
                             if(version == 71519)
                             {
-                                if(!HasAura(71485) || !HasAura(71486) || !HasAura(71492))
+                                if(!HasAura(71485) && !HasAura(71486) && !HasAura(71492))
                                 {
                                     spell_ids.push_back(71485);
                                     spell_ids.push_back(71486);
@@ -999,7 +999,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                             }
                             else
                             {
-                                if(!HasAura(71556) || !HasAura(71558) || !HasAura(71560))
+                                if(!HasAura(71556) && !HasAura(71558) && !HasAura(71560))
                                 {
                                     spell_ids.push_back(71556);
                                     spell_ids.push_back(71558);
@@ -1012,7 +1012,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                         {
                             if(version == 71519)
                             {
-                                if(!HasAura(71485) || !HasAura(71486) || !HasAura(71491))
+                                if(!HasAura(71485) && !HasAura(71486) && !HasAura(71491))
                                 {
                                     spell_ids.push_back(71485);
                                     spell_ids.push_back(71486);
@@ -1021,7 +1021,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                             }
                             else
                             {
-                                if(!HasAura(71556) || !HasAura(71558) || !HasAura(71559))
+                                if(!HasAura(71556) && !HasAura(71558) && !HasAura(71559))
                                 {
                                     spell_ids.push_back(71556);
                                     spell_ids.push_back(71558);
@@ -1034,7 +1034,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                         {
                             if(version == 71519)
                             {
-                                if(!HasAura(71485) || !HasAura(71484) || !HasAura(71492))
+                                if(!HasAura(71485) && !HasAura(71484) && !HasAura(71492))
                                 {
                                     spell_ids.push_back(71485);
                                     spell_ids.push_back(71484);
@@ -1043,7 +1043,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                             }
                             else
                             {
-                                if(!HasAura(71556) || !HasAura(71561) || !HasAura(71560))
+                                if(!HasAura(71556) && !HasAura(71561) && !HasAura(71560))
                                 {
                                     spell_ids.push_back(71556);
                                     spell_ids.push_back(71561);
@@ -1057,24 +1057,21 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                         case CLASS_WARLOCK:
                         {
                             if(version == 71519)
-                            {
                                 if(!HasAura(71492))
                                     spell_ids.push_back(71492);
-                            }
                             else
-                            {
                                 if(!HasAura(71560))
                                     spell_ids.push_back(71560);
-                            }
                             break;
                         }
                         default:
                             break;            
                     }
-                    if(uint32 spellId = spell_ids.at(irand(0,(spell_ids.max_size())-1)))
-                        triggered_spell_id = spellId;
-                    else
+                    if(spell_ids.empty())
                         return SPELL_AURA_PROC_FAILED;
+                    else
+                        triggered_spell_id = spell_ids.at(irand(0,(spell_ids.size())-1));
+                        
                     target = this;
                     break;
                 }
