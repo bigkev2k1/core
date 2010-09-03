@@ -939,6 +939,9 @@ void World::LoadConfigSettings(bool reload)
     // External Mail
     setConfig(CONFIG_BOOL_EXTERNAL_MAIL_ENABLED     , "ExternalMail.Enabled"    , false);
     setConfig(CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL  , "ExternalMail.Interval"   , 1);
+
+    // Darkrulerz' Customs
+    setConfig(CONFIG_UINT32_BASE_PET_SCALE			, "Custom.PetScale"			, 1);
 }
 
 /// Initialize the World

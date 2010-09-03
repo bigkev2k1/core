@@ -1730,3 +1730,15 @@ PvPAnnouncer.ColorArea = |CFFFE8A0E
 
 ExternalMail.Enabled = 0
 ExternalMail.Interval = 1
+
+###################################################################################################################
+# Darkrulerz' Customs
+#
+#    Custom.PetScale
+#        Change the base pet scale
+#        Default: 1 (Near-Blizzlike)
+#    NOTE: Do not know what will happen when set higher
+#
+###################################################################################################################
+
+Custom.PetScale = 1

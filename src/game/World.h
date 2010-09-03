@@ -200,6 +200,7 @@ enum eConfigUInt32Values
     /* End AHBot */
     // External Mail
     CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL,
+    CONFIG_UINT32_BASE_PET_SCALE,
 
     CONFIG_UINT32_VALUE_COUNT
 };
