@@ -6384,11 +6384,13 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
                     DoneTotalMod *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
                 break;
             }
+             case 5147: // Improved Consecration / Libram of Resurgence
+                DoneTotal+=((*i)->GetModifier()->m_amount)/8;
+                break;
             case 4418: // Increased Shock Damage
             case 4554: // Increased Lightning Damage
             case 4555: // Improved Moonfire
             case 5142: // Increased Lightning Damage
-            case 5147: // Improved Consecration / Libram of Resurgence
             case 5148: // Idol of the Shooting Star
             case 6008: // Increased Lightning Damage
             case 8627: // Totem of Hex
@@ -6520,6 +6522,12 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
                         }
                     }
                 }
+            }
+            //Idol of the Crying Wind
+            else if (spellProto->SpellFamilyFlags & UI64LIT(0x000000000200000))
+            {
+                if(Aura* cryingWind = GetDummyAura(64950))
+                    DoneTotal+= (cryingWind->GetModifier()->m_amount)/6;                  
             }
             break;
         }
@@ -6992,6 +7000,8 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
         {
             case 4415: // Increased Rejuvenation Healing
             case 4953:
+                DoneTotal+=((*i)->GetModifier()->m_amount)/5;
+                break;
             case 3736: // Hateful Totem of the Third Wind / Increased Lesser Healing Wave / LK Arena (4/5/6) Totem of the Third Wind / Savage Totem of the Third Wind
                 DoneTotal+=(*i)->GetModifier()->m_amount;
                 break;
@@ -7056,6 +7066,9 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
             if (Aura* glyph = GetAura(62971, EFFECT_INDEX_0))// Glyph of Nourish
                 DoneTotalMod *= (glyph->GetModifier()->m_amount * ownHotCount + 100.0f) / 100.0f;
         }
+        //Idol of Flourishing Life
+        if(Aura* flourishingLife = GetDummyAura(64949))
+            DoneTotal += flourishingLife->GetModifier()->m_amount;
     }
 
     // Done fixed damage bonus auras
