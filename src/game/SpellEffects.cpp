@@ -1797,7 +1797,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         uint8 stackNum = pAura->GetStackAmount();
 
                         // chance to become pygmified (5, 10, 15 etc)
-                        if (roll_chance_i(stackNum*5) || (m_caster->HasAura(spellTransf, EFFECT_INDEX_0))
+                        if (roll_chance_i(stackNum*5) || (m_caster->HasAura(spellTransf, EFFECT_INDEX_0)))
                         {
                             m_caster->RemoveAurasDueToSpell(spellShrink);
                             m_caster->CastSpell(m_caster, spellTransf, true);
