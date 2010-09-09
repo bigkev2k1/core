@@ -1760,6 +1760,17 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                 basepoints[0] = triggerAmount * damage / 100;
                 break;
             }
+            //King of the Jungle
+            else if (dummySpell->SpellIconID == 2850)
+            {
+                if(procSpell->Id == 5229)
+                    triggered_spell_id = 51185;
+                else
+                    triggered_spell_id = 51178;
+                basepoints[0] = triggerAmount;
+                target = this;
+                break;
+            }
             break;
         }
         case SPELLFAMILY_ROGUE:

@@ -8709,6 +8709,9 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
             // Barkskin
             if (GetId()==22812 && m_target->HasAura(63057)) // Glyph of Barkskin
                 spellId1 = 63058;                           // Glyph - Barkskin 01
+            //Enrage
+            else if(GetId() == 5229 && m_target->HasAura(51185)) //King of the Jungle damage increase
+                spellId1 = 51185;
             else
                 return;
             break;
