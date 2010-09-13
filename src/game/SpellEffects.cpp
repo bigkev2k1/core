@@ -888,6 +888,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
+                //Blazerunner's Aura Dispel
+                case 14247:
+                {
+                    SpellAuraHolder* blazerunnerAura = unitTarget->GetSpellAuraHolder(13913);
+                    if(blazerunnerAura)
+                        unitTarget->RemoveAurasDueToSpell(13913);
+                    return;
+                }
                 case 15998:                                 // Capture Worg Pup
                 case 29435:                                 // Capture Female Kaliri Hatchling
                 {
