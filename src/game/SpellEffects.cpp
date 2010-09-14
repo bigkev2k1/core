@@ -4426,6 +4426,10 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
     for(Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
     {
         SpellAuraHolder *holder = itr->second;
+
+		if (unitTarget->HasAura(50536) && (itr->second->GetSpellProto()->Dispel == DISPEL_DISEASE)) // Unholy blight desease dispelling prevention.
+           continue;
+
         if ((1<<holder->GetSpellProto()->Dispel) & dispelMask)
         {
             if(holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
