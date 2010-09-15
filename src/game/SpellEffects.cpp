@@ -2707,15 +2707,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 				if (!unitTarget)
 					return;
 
-				//Taunt target
-				m_caster->CastSpell(unitTarget, 51399, true, NULL);
-
 				//All state should be ingnored
 				unitTarget->clearUnitState(UNIT_STAT_ALL_STATE);
 			
 				uint32 spellId = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0);
 
 				unitTarget->CastSpell(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), spellId, true);
+				
+				//Taunt target
+				m_caster->CastSpell(unitTarget, 51399, true, NULL);				
 					return;
 			}
             // Obliterate
