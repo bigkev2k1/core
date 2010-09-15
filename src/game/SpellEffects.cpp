@@ -2711,7 +2711,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 				m_caster->CastSpell(unitTarget, 51399, true, NULL);
 
 				//All state should be ingnored
-				m_creature->clearUnitState(UNIT_STAT_ALL_STATE);
+				unitTarget->clearUnitState(UNIT_STAT_ALL_STATE);
 			
 				uint32 spellId = m_spellInfo->CalculateSimpleValue(EFFECT_INDEX_0);
 
