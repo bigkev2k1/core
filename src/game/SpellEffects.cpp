@@ -1802,7 +1802,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     if (Aura* pAura = m_caster->GetAura(spellShrink, EFFECT_INDEX_0))
                     {
-                        uint8 stackNum = pAura->GetStackAmount();
+                        uint32 stackNum = pAura->GetStackAmount();
 
                         // chance to become pygmified (5, 10, 15 etc)
                         if (roll_chance_i(stackNum*5) || (m_caster->HasAura(spellTransf, EFFECT_INDEX_0)))
@@ -3538,7 +3538,7 @@ void Spell::EffectHealMechanical(SpellEffectIndex /*eff_idx*/)
         uint32 absorb = 0;
         unitTarget->CalculateHealAbsorb(addhealth, &absorb);
 
-        caster->DealHeal(unitTarget, addhealth, m_spellInfo, false, absorb);
+        caster->DealHeal(unitTarget, addhealth - absorb, m_spellInfo, false, absorb);
     }
 }
 
