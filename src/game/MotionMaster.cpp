@@ -111,8 +111,8 @@ void MotionMaster::DirectClean(bool reset, bool all)
         MovementGenerator *curr = top();
         pop();
 
-        if (i_owner && i_owner->IsInWorld())
-			curr->Finalize(*i_owner);
+        if (m_owner && m_owner->IsInWorld())
+			curr->Finalize(*m_owner);
         if (!isStatic(curr))
             delete curr;
     }
@@ -142,7 +142,7 @@ void MotionMaster::DelayedClean(bool reset, bool all)
         MovementGenerator *curr = top();
         pop();
 
-        if (i_owner && i_owner->IsInWorld())
+        if (m_owner && m_owner->IsInWorld())
 			curr->Finalize(*m_owner);
         if (!isStatic( curr ))
             m_expList->push_back(curr);
@@ -315,20 +315,20 @@ void MotionMaster::MoveJump(float x, float y, float z, float speedZ)
     uint32 moveFlag = SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE;
     uint32 time = 521;
 
-    i_owner->addUnitState(UNIT_STAT_FLEEING_MOVE | UNIT_STAT_JUMPING);
-    if (i_owner->GetTypeId() == TYPEID_PLAYER)
+    m_owner->addUnitState(UNIT_STAT_FLEEING_MOVE | UNIT_STAT_JUMPING);
+    if (m_owner->GetTypeId() == TYPEID_PLAYER)
     {
-        DEBUG_LOG("Player (GUID: %u) jump to point (X: %f Y: %f Z: %f)", i_owner->GetGUIDLow(), x, y, z);
+        DEBUG_LOG("Player (GUID: %u) jump to point (X: %f Y: %f Z: %f)", m_owner->GetGUIDLow(), x, y, z);
         Mutate(new PointMovementGenerator<Player>(0,x,y,z));
     }
     else
     {
         DEBUG_LOG("Creature (Entry: %u GUID: %u) jump to point (X: %f Y: %f Z: %f)",
-            i_owner->GetEntry(), i_owner->GetGUIDLow(), x, y, z);
+            m_owner->GetEntry(), m_owner->GetGUIDLow(), x, y, z);
         Mutate(new PointMovementGenerator<Creature>(0,x,y,z));
     }
 
-    i_owner->SendMonsterMove(x, y, z,SPLINETYPE_NORMAL, (SplineFlags)moveFlag, time,NULL, speedZ);
+    m_owner->SendMonsterMove(x, y, z,SPLINETYPE_NORMAL, (SplineFlags)moveFlag, time,NULL, speedZ);
 }
 
 void MotionMaster::MoveSeekAssistance(float x, float y, float z)
