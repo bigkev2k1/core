@@ -469,6 +469,14 @@ Unit *caster, Item* castItem) : Aura(spellproto, eff, currentBasePoints, holder,
     if(Player* modOwner = caster_ptr->GetSpellModOwner())
         modOwner->ApplySpellMod(spellproto->Id, SPELLMOD_RADIUS, m_radius);
 
+    if (spellproto->Id == 53642)    // Might of Mograine
+    {
+        m_areaAuraType = AREA_AURA_FRIEND;
+        if (target->GetTypeId() != TYPEID_PLAYER)   // should only affect players and caster
+            m_modifier.m_auraname = SPELL_AURA_NONE; 
+        return;
+    } 
+
     switch(spellproto->Effect[eff])
     {
         case SPELL_EFFECT_APPLY_AREA_AURA_PARTY:
