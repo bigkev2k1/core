@@ -797,6 +797,8 @@ void World::LoadConfigSettings(bool reload)
     if(getConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT) < 1)
         setConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT,"PvPToken.ItemCount",1);
 
+    setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
+
     m_VisibleUnitGreyDistance = sConfig.GetFloatDefault("Visibility.Distance.Grey.Unit", 1);
     if(m_VisibleUnitGreyDistance >  MAX_VISIBILITY_DISTANCE)
     {

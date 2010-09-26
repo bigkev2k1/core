@@ -361,7 +361,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_AHBOT_BUYPRICE_BUYER,
 	/* End AHBot */
     CONFIG_BOOL_VMAP_INDOOR_CHECK,
-    
+    CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,
     /// Darkrulerz' Customs
     // PvP Token
     CONFIG_BOOL_PVP_TOKEN_ENABLE,
