@@ -5407,6 +5407,72 @@ void Aura::HandleComprehendLanguage(bool apply, bool /*Real*/)
         GetTarget()->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_COMPREHEND_LANG);
 }
 
+void Aura::HandleAuraMirrorImage(bool Apply, bool Real)
+{
+    if (!Real)
+        return;
+
+    Unit* target = GetTarget();
+    Unit* caster = GetCaster();
+
+    if (Apply)
+    {
+        if (!caster)
+            return;
+        // Set display id
+        target->SetDisplayId(caster->GetDisplayId());
+        target->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
+    }
+    else
+    {
+        target->SetDisplayId(target->GetNativeDisplayId());
+        target->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_MIRROR_IMAGE);
+    }
+}
+
+/**
+ * Such auras are applied from a caster(=player) to a vehicle.
+ * This has been verified using spell #49256
+ */
+void Aura::HandleAuraControlVehicle(bool apply, bool Real)
+{
+     if(!Real)
+         return;
+
+    Unit* target = GetTarget();
+    Unit* caster = GetCaster();
+    if (target->GetTypeId() != TYPEID_UNIT || !((Creature*)target)->isVehicle())
+        return;
+    Vehicle* vehicle = (Vehicle*)target;
+
+    if(!caster || !vehicle)
+        return;
+
+    // this can happen due to wrong caster/target spell handling
+    // note : SPELL_AURA_CONTROL_VEHICLE can have EffectImplicitTargetA
+    // TARGET_SCRIPT, TARGET_DUELVSPLAYER.. etc
+    if(caster->GetGUID() == vehicle->GetGUID())
+        return;
+
+    if (apply)
+    {
+        if(caster->GetTypeId() == TYPEID_PLAYER)
+        {
+            WorldPacket data(SMSG_ON_CANCEL_EXPECTED_RIDE_VEHICLE_AURA, 0);
+            ((Player*)caster)->GetSession()->SendPacket(&data);
+        }
+        // if we leave and enter again, this will refresh
+        int32 duration = GetSpellMaxDuration(GetSpellProto());
+        if(duration > 0)
+            vehicle->SetSpawnDuration(duration);
+    }
+    else
+    {
+        // some SPELL_AURA_CONTROL_VEHICLE auras have a dummy effect on the player - remove them
+        caster->RemoveAurasDueToSpell(GetId());
+    }
+}
+
 void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
 {
     Unit *target = GetTarget();
