@@ -200,7 +200,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectHealPct,                                  //136 SPELL_EFFECT_HEAL_PCT
     &Spell::EffectEnergisePct,                              //137 SPELL_EFFECT_ENERGIZE_PCT
     &Spell::EffectLeapBack,                                 //138 SPELL_EFFECT_LEAP_BACK                Leap back
-    &Spell::EffectNULL,                                     //139 SPELL_EFFECT_CLEAR_QUEST              (misc - is quest ID)
+    &Spell::EffectAbandonQuest,                             //139 SPELL_EFFECT_CLEAR_QUEST              (misc - is quest ID)
     &Spell::EffectForceCast,                                //140 SPELL_EFFECT_FORCE_CAST
     &Spell::EffectNULL,                                     //141 SPELL_EFFECT_141                      damage and reduce speed?
     &Spell::EffectTriggerSpellWithValue,                    //142 SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE
@@ -2791,6 +2791,24 @@ void Spell::EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx)
     finish();
 
     m_caster->CastSpell(unitTarget,spellInfo,false);
+}
+
+void Spell::EffectAbandonQuest(SpellEffectIndex eff_idx)
+{
+    if(unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    uint32 quest_id = m_spellInfo->EffectMiscValue[eff_idx];
+
+    if (const Quest *pQuest = sObjectMgr.GetQuestTemplate(quest_id))
+    {
+        if (pQuest->HasFlag(QUEST_MANGOS_FLAGS_TIMED))
+            ((Player*)unitTarget)->RemoveTimedQuest(quest_id);
+
+        ((Player*)unitTarget)->SetQuestStatus(quest_id, QUEST_STATUS_NONE);
+    }
+
+    ((Player*)unitTarget)->SetQuestSlot(((Player*)unitTarget)->FindQuestSlot(quest_id), 0);
 }
 
 void Spell::EffectForceCast(SpellEffectIndex eff_idx)
