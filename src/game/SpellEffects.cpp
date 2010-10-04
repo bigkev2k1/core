@@ -267,7 +267,7 @@ void Spell::EffectResurrectNew(SpellEffectIndex eff_idx)
 
 void Spell::EffectInstaKill(SpellEffectIndex /*eff_idx*/)
 {
-    if( !unitTarget || !unitTarget->isAlive() )
+    if (!unitTarget || !unitTarget->isAlive())
         return;
 
     if(m_spellInfo->Id==52479 && unitTarget->GetTypeId()==TYPEID_PLAYER)
@@ -275,6 +275,14 @@ void Spell::EffectInstaKill(SpellEffectIndex /*eff_idx*/)
 
     if(m_caster == unitTarget)                              // prevent interrupt message
         finish();
+
+    WorldObject* caster = GetCastingObject();               // we need the original casting object
+
+    WorldPacket data(SMSG_SPELLINSTAKILLLOG, (8+8+4));
+    data << (caster && caster->GetTypeId() != TYPEID_GAMEOBJECT ? m_caster->GetObjectGuid() : ObjectGuid()); // Caster GUID
+    data << unitTarget->GetObjectGuid();                    // Victim GUID
+    data << uint32(m_spellInfo->Id);
+    m_caster->SendMessageToSet(&data, true);
 
     m_caster->DealDamage(unitTarget, unitTarget->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
 }
@@ -1910,7 +1918,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         case 3: spell_id = 64984; break;
                     }
                     m_caster->CastSpell(m_caster,spell_id,true);
-                    return; 	
+                    return;
+				}
+                case 64385:                                 // Spinning (from Unusual Compass)
+                {
+                    m_caster->SetFacingTo(frand(0, M_PI_F*2), true);
+                    return;
                 }
                 case 67019:                                 // Flask of the North
                 {
@@ -4484,6 +4497,11 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
                 if (positive == unitTarget->IsFriendlyTo(m_caster))
                     continue;
             }
+            // Unholy Blight prevents dispel of diseases from target
+            else if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
+                if (unitTarget->HasAura(50536))
+                    continue;
+
             dispel_list.push_back(std::pair<SpellAuraHolder* ,uint32>(holder, holder->GetStackAmount()));
         }
     }
