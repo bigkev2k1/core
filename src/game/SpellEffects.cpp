@@ -6658,6 +6658,19 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 48589, true);
                     return;
                 }
+                case 49380:                                // Consume (normal mode Trollgore - Drak'Tharok Keep)
+                {
+                    if (!unitTarget)
+                        return;
+
+                    // apply Consume buff
+                    unitTarget->CastSpell(m_caster, 49381, false);
+
+                    // Corpse Explode (prepare corpse to explode)
+                    m_caster->CastSpell(unitTarget, 49555, false);
+
+                    return;
+                }
                 case 50217:                                 // The Cleansing: Script Effect Player Cast Mirror Image
                 {
                     // Summon Your Inner Turmoil
