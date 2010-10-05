@@ -2036,10 +2036,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         if (Unit* caster = GetCaster())
                             caster->CastSpell(caster, 50016, true, NULL, this);
                         return;
-                    case 50141:                             // Blood Oath
-                        if (Unit* caster = GetCaster())
-                            caster->CastSpell(caster, 50001, true, NULL, this);
-                        return;
                     case 62061:                             // Festive Holiday Mount
                         if (target->HasAuraType(SPELL_AURA_MOUNTED))
                             // Reindeer Transformation
