@@ -2438,6 +2438,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
         bool canSeeSpellClickOn(Creature const* creature) const;
+        
+        //Inebriation system
+        void AllowSobering(bool allowSobering) { m_allowSobering = allowSobering; }
 
         // Playerbot mod:
         // A Player can either have a playerbotMgr (to manage its bots), or have playerbotAI (if it is a bot), or
@@ -2620,6 +2623,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint32 m_drunkTimer;
         uint16 m_drunk;
+        bool m_allowSobering;
+
         uint32 m_weaponChangeTimer;
 
         uint32 m_zoneUpdateId;

@@ -510,6 +510,7 @@ Player::Player (WorldSession *session): Unit(), m_mover(this), m_camera(this), m
     m_isInWater = false;
     m_drunkTimer = 0;
     m_drunk = 0;
+    m_allowSobering = true;
     m_restTime = 0;
     m_deathTimer = 0;
     m_deathExpireTime = 0;
@@ -1462,7 +1463,7 @@ void Player::Update( uint32 p_time )
     {
         m_drunkTimer += p_time;
 
-        if (m_drunkTimer > 10*IN_MILLISECONDS)
+        if (m_drunkTimer > 10*IN_MILLISECONDS && m_allowSobering)
             HandleSobering();
     }
 

@@ -354,7 +354,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleNULL,                                      //301 SPELL_AURA_HEAL_ABSORB 5 spells
     &Aura::HandleUnused,                                    //302 unused (3.2.2a)
     &Aura::HandleNULL,                                      //303 17 spells
-    &Aura::HandleNULL,                                      //304 2 spells (alcohol effect?)
+    &Aura::HandleAuraPersistentInebriation,                 //304 SPELL_AURA_PERSISTENT_INEBRIATION
     &Aura::HandleAuraModIncreaseSpeed,                      //305 SPELL_AURA_MOD_MINIMUM_SPEED
     &Aura::HandleNULL,                                      //306 1 spell
     &Aura::HandleNULL,                                      //307 absorb healing?
@@ -7828,6 +7828,40 @@ void Aura::HandleAuraOpenStable(bool apply, bool Real)
         player->GetSession()->SendStablePet(player->GetObjectGuid());
 
     // client auto close stable dialog at !apply aura
+}
+
+void Aura::HandleAuraPersistentInebriation(bool apply, bool Real)
+{
+    if(!Real)
+        return;
+
+    Unit* target = GetTarget();
+
+    if(target->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = ((Player*)target);
+
+    uint16 currentDrunk = player->GetDrunkValue();
+    uint16 drunkMod = ((uint16)(GetModifier()->m_amount * 256));
+    
+    if(apply)
+    {
+        if (currentDrunk + drunkMod > 0xFFFF)
+            currentDrunk = 0xFFFF;
+        else
+            currentDrunk += drunkMod;
+        player->AllowSobering(false);
+    }
+    else
+    {
+        currentDrunk -= drunkMod;
+        player->AllowSobering(true);
+    }
+
+    uint64 cast_item_guid = GetCastItemGUID();
+    uint32 item_id = cast_item_guid ? player->GetItemByGuid(cast_item_guid)->GetEntry() : 0;
+    player->SetDrunkValue(currentDrunk, item_id);
 }
 
 void Aura::HandleAuraConvertRune(bool apply, bool Real)
