@@ -6734,6 +6734,18 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 59803:                                 // Consume (heroic mode Trollgore - Drak'Tharok Keep)
+                {
+                    if (!unitTarget)
+                        return;
+
+                    // apply Consume buff
+                    unitTarget->CastSpell(m_caster, 59805, false);
+
+                    // Corpse Explode (prepare corpse to explode)
+                    m_caster->CastSpell(unitTarget, 59807, false);
+                    return;
+                }
                 case 51770:                                 // Emblazon Runeblade
                 {
                     Unit* caster = GetAffectiveCaster();
