@@ -6558,6 +6558,30 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     break;
                 }
+                // Request Second Mug 
+                // if Has Dark Brewmaiden's Brew (s47331) not dispeled by drinking Dark Brewmaiden's Brew (s47345) triggers
+                // Request Second Mug (s47344) which should force creature Ilsa Direbrew (c26764) to cast Send Second Mug (s47339)
+                case 47344:
+                {
+                    // Search Ilsa Direbrew
+                    uint32 IlsaEntry = 26764;
+                    float fSpellRange = 100.0f;
+                    Creature* pCreature = NULL;
+
+                    MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck creature_check(*m_caster, IlsaEntry, true, fSpellRange);
+                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(m_caster, pCreature, creature_check);
+                    Cell::VisitGridObjects(m_caster, searcher, fSpellRange);
+
+                    // if found Ilsa alive cast Send Second Mug
+                    if (pCreature)
+                    {
+                        pCreature->InterruptNonMeleeSpells(false);
+                        pCreature->CastSpell(m_caster,47339,true);
+                    }
+                    //Dispel Triggering aura
+                    m_caster->RemoveAurasDueToSpell(47331);
+                    return;
+                }
                 case 47393:                                 // The Focus on the Beach: Quest Completion Script
                 {
                     if (!unitTarget)
