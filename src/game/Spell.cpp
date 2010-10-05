@@ -4379,7 +4379,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->Category == 1219 && m_spellInfo->SpellIconID == 457 && (m_caster->HasAura(57499) || m_caster->HasAura( 64976 )))
 		bNonCombatSpell = false;
 
-    if (m_caster->isInCombat() && IsNonCombatSpell(m_spellInfo) && !m_IsTriggeredSpell)
+    if (m_caster->isInCombat() && bNonCombatSpell && !m_IsTriggeredSpell)
         return SPELL_FAILED_AFFECTING_COMBAT;
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER && !((Player*)m_caster)->isGameMaster() &&
