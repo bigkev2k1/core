@@ -6569,7 +6569,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     Creature* pCreature = NULL;
 
                     MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck creature_check(*m_caster, IlsaEntry, true, fSpellRange);
-                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(m_caster, pCreature, creature_check);
+                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(pCreature, creature_check);
                     Cell::VisitGridObjects(m_caster, searcher, fSpellRange);
 
                     // if found Ilsa alive cast Send Second Mug
