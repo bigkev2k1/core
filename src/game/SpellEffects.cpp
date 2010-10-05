@@ -6346,6 +6346,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 41131, true);
                     break;
                 }
+                case 42281:                                 // Sprout (Headless Horsemann spell)
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 42285, true);
+                    return;
+                }
                 case 43365:                                 // The Cleansing: Shrine Cast
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
