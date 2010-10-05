@@ -6827,6 +6827,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     m_caster->AddObjectToRemoveList();
                         return;
                 }
+                case 51962:                                 //Offer Jungle Punch
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->MonsterSay("Care to try Grimbooze Thunderbrew's new jungle punch?",LANG_UNIVERSAL,NULL);
+                    return;
+                }
                 case 52751:                                 // Death Gate
                 {
                     if (!unitTarget || unitTarget->getClass() != CLASS_DEATH_KNIGHT)
