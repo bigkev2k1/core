@@ -4374,6 +4374,11 @@ SpellCastResult Spell::CheckCast(bool strict)
             if(bg->GetStatus() == STATUS_WAIT_LEAVE)
                 return SPELL_FAILED_DONT_REPORT;
 
+    // Warbringer and juggernaut Hack to allow charge in combat
+	bool bNonCombatSpell = IsNonCombatSpell(m_spellInfo);    
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->Category == 1219 && m_spellInfo->SpellIconID == 457 && (m_caster->HasAura(57499) || m_caster->HasAura( 64976 )))
+		bNonCombatSpell = false;
+
     if (m_caster->isInCombat() && IsNonCombatSpell(m_spellInfo) && !m_IsTriggeredSpell)
         return SPELL_FAILED_AFFECTING_COMBAT;
 
