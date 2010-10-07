@@ -586,6 +586,8 @@ struct GraveYardData
 };
 typedef std::multimap<uint32,GraveYardData> GraveYardMap;
 
+typedef std::map<uint64, uint32> ItemRefundableMap;
+
 enum ConditionType
 {                                                           // value1       value2  for the Condition enumed
     CONDITION_NONE                  = 0,                    // 0            0
@@ -1243,6 +1245,7 @@ class ObjectMgr
 
         int GetOrNewIndexForLocale(LocaleConstant loc);
 
+		ItemRefundableMap mItemRefundableMap;
         VehicleDataMap mVehicleData;
         VehicleSeatDataMap mVehicleSeatData;
 
