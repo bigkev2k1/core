@@ -6829,18 +6829,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 54522, true);
                     break;
                 }
-				case 52479:                                 // Gift of the Harvester
-				{
-                    if (!unitTarget || !m_caster)
-                        return;
-
-					if (rand()%100 < 35)
-						m_caster->CastSpell(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 52490, true);
-					else
-						m_caster->CastSpell(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 52505, true);
-
-					((Creature*)unitTarget)->ForcedDespawn(15000);
-				}
                 case 52694:                                 // Recall Eye of Acherus
                 {
                     if(!m_caster || m_caster->GetTypeId() != TYPEID_UNIT)
