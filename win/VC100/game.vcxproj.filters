@@ -452,6 +452,8 @@
     <ClCompile Include="..\..\src\game\ChatLog.cpp" />
     <ClCompile Include="..\..\src\game\VehicleHandler.cpp" />
     <ClCompile Include="..\..\src\game\AuctionHouseBot.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\game\playerbot\PlayerbotAI.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
@@ -887,6 +889,8 @@
     <ClInclude Include="..\..\src\game\ChatLexicsCutter.h" />
     <ClInclude Include="..\..\src\game\ChatLog.h" />
     <ClInclude Include="..\..\src\game\AuctionHouseBot.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\game\playerbot\PlayerbotAI.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
