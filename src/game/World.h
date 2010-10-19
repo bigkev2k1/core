@@ -267,7 +267,15 @@ enum eConfigFloatValues
     CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS,
     CONFIG_FLOAT_GROUP_XP_DISTANCE,
     CONFIG_FLOAT_THREAT_RADIUS,
-    CONFIG_FLOAT_VALUE_COUNT
+    CONFIG_FLOAT_VALUE_COUNT,
+    
+    /// Darkrulerz' Customs
+    //PvP Token
+    CONFIG_FLOAT_PVP_TOKEN_ITEMID,
+    CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT,
+    CONFIG_FLOAT_PVP_TOKEN_GOLD,
+    CONFIG_FLOAT_PVP_TOKEN_RESTRICTION
+    /// Darkrulerz' Customs
 };
 
 /// Configuration elements
@@ -323,7 +331,12 @@ enum eConfigBoolValues
     CONFIG_BOOL_VMAP_INDOOR_CHECK,
     CONFIG_BOOL_LOOT_CHESTS_IGNORE_DB,
     CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,
-    CONFIG_BOOL_VALUE_COUNT
+    CONFIG_BOOL_VALUE_COUNT,
+    
+    /// Darkrulerz' Customs
+    // PvP Token
+    CONFIG_BOOL_PVP_TOKEN_ENABLE
+    /// Darkrulerz' Customs
 };
 
 /// Can be used in SMSG_AUTH_RESPONSE packet
