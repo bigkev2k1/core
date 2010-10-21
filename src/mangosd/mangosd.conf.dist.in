@@ -439,7 +439,7 @@ LexicsCutterNoActionOnGM = 1
 #
 #    GameType
 #        Server realm style
-#        0 = NORMAL;1 = PVP; 4 = NORMAL; 6 = RP; 8 = RPPVP
+#        0 = NORMAL; 1 = PVP; 4 = NORMAL; 6 = RP; 8 = RPPVP
 #        also custom type: 16 FFA_PVP (free for all pvp mode like arena PvP in all zones except rest
 #        activated places and sanctuaries)
 #
@@ -1643,7 +1643,6 @@ AuctionHouseBot.VendorItems = 0
 AuctionHouseBot.LootItems = 1
 AuctionHouseBot.OtherItems = 0
 AuctionHouseBot.No_Bind = 1
-AuctionHouseBot.MaxItemLevel = 200
 AuctionHouseBot.Bind_When_Picked_Up = 0
 AuctionHouseBot.Bind_When_Equipped = 1
 AuctionHouseBot.Bind_When_Use = 1
