@@ -537,7 +537,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                 m_bot->GetMotionMaster()->Clear(true);
                 m_bot->GetMotionMaster()->MoveFollow(pPlayer, dist, angle);
 
-                m_bot->SetSelection(playerGuid);
+                m_bot->SetSelectionGuid(ObjectGuid(playerGuid));
                 m_ignoreAIUpdatesUntilTime = time(0) + 4;
                 m_ScenarioType = SCENARIO_DUEL;
             }
@@ -1392,7 +1392,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
         return;
     }
 
-    m_bot->SetSelection(m_targetCombat->GetGUID());
+    m_bot->SetSelectionGuid((m_targetCombat->GetObjectGuid()));
     m_ignoreAIUpdatesUntilTime = time(0) + 1;
 
     if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
@@ -1418,7 +1418,7 @@ void PlayerbotAI::DoNextCombatManeuver()
     if (!m_targetCombat || m_targetCombat->isDead() || !m_targetCombat->IsInWorld() || !m_bot->IsHostileTo(m_targetCombat) || !m_bot->IsInMap(m_targetCombat))
     {
         m_bot->AttackStop();
-        m_bot->SetSelection(0);
+        m_bot->SetSelectionGuid(ObjectGuid());
         MovementReset();
         m_bot->InterruptNonMeleeSpells(true);
         m_targetCombat = 0;
@@ -1673,7 +1673,7 @@ void PlayerbotAI::TurnInQuests(WorldObject *questgiver)
         TellMaster("hey you are turning in quests without me!");
     else
     {
-        m_bot->SetSelection(giverGUID);
+         m_bot->SetSelectionGuid(giverGUID);
 
         // auto complete every completed quest this NPC has
         m_bot->PrepareQuestMenu(giverGUID);
@@ -2128,7 +2128,7 @@ void PlayerbotAI::UpdateAI(const uint32 p_time)
             m_lootCreature.clear();
             m_lootCurrent = 0;
             // clear combat orders
-            m_bot->SetSelection(0);
+            m_bot->SetSelectionGuid(ObjectGuid());
             m_bot->GetMotionMaster()->Clear(true);
             // set state to dead
             SetState(BOTSTATE_DEAD);
@@ -2277,10 +2277,10 @@ bool PlayerbotAI::CastSpell(const char* args)
 
 bool PlayerbotAI::CastSpell(uint32 spellId, Unit& target)
 {
-    uint64 oldSel = m_bot->GetSelection();
-    m_bot->SetSelection(target.GetGUID());
+    ObjectGuid oldSel = m_bot->GetSelectionGuid();
+	m_bot->SetSelectionGuid(target.GetObjectGuid());
     bool rv = CastSpell(spellId);
-    m_bot->SetSelection(oldSel);
+    m_bot->SetSelectionGuid(oldSel);
     return rv;
 }
 
@@ -2305,8 +2305,8 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     }
 
     // set target
-    uint64 targetGUID = m_bot->GetSelection();
-    Unit* pTarget = ObjectAccessor::GetUnit(*m_bot, m_bot->GetSelection());
+    ObjectGuid targetGUID = m_bot->GetSelectionGuid();
+	Unit* pTarget = ObjectAccessor::GetUnit(*m_bot, targetGUID);
 
     // Check spell range
     std::map<uint32, float>::iterator it = m_spellRangeMap.find(spellId);
@@ -2394,7 +2394,7 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
     Unit* pTarget;
     if (!target)
     {
-        uint64 targetGUID = m_bot->GetSelection();
+        ObjectGuid targetGUID = m_bot->GetSelectionGuid();
         pTarget = ObjectAccessor::GetUnit(*m_bot, targetGUID);
     }
     else
@@ -3081,8 +3081,8 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
         SetMovementOrder(MOVEMENT_STAY);
     else if (text == "attack")
     {
-        uint64 attackOnGuid = fromPlayer.GetSelection();
-        if (attackOnGuid)
+        ObjectGuid attackOnGuid = fromPlayer.GetSelectionGuid();
+		if (!attackOnGuid.IsEmpty())
         {
             Unit* thingToAttack = ObjectAccessor::GetUnit(*m_bot, attackOnGuid);
             if (!m_bot->IsFriendlyTo(thingToAttack) && m_bot->IsWithinLOSInMap(thingToAttack))
@@ -3119,11 +3119,11 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
             return;
         }
 
-        uint64 castOnGuid = fromPlayer.GetSelection();
-        if (spellId != 0 && castOnGuid != 0 && m_bot->HasSpell(spellId))
-        {
+        ObjectGuid castOnGuid = fromPlayer.GetSelectionGuid();
+		if (spellId != 0 && !castOnGuid.IsEmpty() && m_bot->HasSpell(spellId))
+		{
             m_spellIdCommand = spellId;
-            m_targetGuidCommand = castOnGuid;
+            m_targetGuidCommand = castOnGuid.GetRawValue();
         }
 
     }
@@ -3363,16 +3363,17 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
     // drop a quest
     else if (text.size() > 5 && text.substr(0, 5) == "drop ")
     {
-        uint64 oldSelectionGUID = 0;
-        if (fromPlayer.GetSelection() != m_bot->GetGUID()) {
-            oldSelectionGUID = m_bot->GetGUID();
-            fromPlayer.SetSelection(m_bot->GetGUID());
+        ObjectGuid oldSelectionGUID = ObjectGuid();
+        if (fromPlayer.GetSelectionGuid() != m_bot->GetObjectGuid())
+		{
+            oldSelectionGUID = m_bot->GetObjectGuid();
+            fromPlayer.SetSelectionGuid(oldSelectionGUID);
         }
         PlayerbotChatHandler ch(GetMaster());
         if (!ch.dropQuest((char*) text.substr(5).c_str()))
             ch.sysmessage("ERROR: could not drop quest");
-        if (oldSelectionGUID)
-            fromPlayer.SetSelection(oldSelectionGUID);
+        if (!oldSelectionGUID.IsEmpty())
+            fromPlayer.SetSelectionGuid(oldSelectionGUID);
     }
 
     // Handle all pet related commands here
@@ -3440,7 +3441,7 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
                     return;
                 }
 
-                uint64 castOnGuid = fromPlayer.GetSelection();
+                ObjectGuid castOnGuid = fromPlayer.GetSelectionGuid();
                 Unit* pTarget = ObjectAccessor::GetUnit(*m_bot, castOnGuid);
                 CastPetSpell(spellId, pTarget);
             }
@@ -3727,7 +3728,7 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
         if (!itemIds.empty()) {
             uint32 itemId = itemIds.front();
             bool wasRewarded = false;
-            uint64 questRewarderGUID = m_bot->GetSelection();
+            ObjectGuid questRewarderGUID = m_bot->GetSelectionGuid();
             Object* const pNpc = (WorldObject*) m_bot->GetObjectByTypeMask(questRewarderGUID, TYPEMASK_CREATURE_OR_GAMEOBJECT);
             if (!pNpc)
                 return;
