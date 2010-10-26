@@ -137,6 +137,16 @@ void WorldSession::HandlePetNameQueryOpcode( WorldPacket & recv_data )
 void WorldSession::SendPetNameQuery( ObjectGuid petguid, uint32 petnumber)
 {
     Creature* pet = GetPlayer()->GetMap()->GetAnyTypeCreature(petguid);
+    if (!pet || !pet->GetCharmInfo() || pet->GetCharmInfo()->GetPetNumber() != petnumber)
+    {
+        WorldPacket data(SMSG_PET_NAME_QUERY_RESPONSE, (4+1+4+1));
+        data << uint32(petnumber);
+        data << uint8(0);
+        data << uint32(0);
+        data << uint8(0);
+        GetPlayer()->GetSession()->SendPacket(&data);
+        return;
+    }
 
     std::string name = GetPlayer()->GetKnownPetName(petnumber);
 
@@ -392,9 +402,10 @@ void WorldSession::HandlePetAbandon( WorldPacket & recv_data )
 {
     ObjectGuid guid;
     recv_data >> guid;                                      //pet guid
-    DETAIL_LOG( "HandlePetAbandon. CMSG_PET_ABANDON pet guid is %u", guid.GetCounter());
 
-    if(!_player->IsInWorld())
+    DETAIL_LOG("HandlePetAbandon. CMSG_PET_ABANDON pet guid is %s", guid.GetString().c_str());
+
+    if (!_player->IsInWorld())
         return;
 
     // pet/charmed
@@ -420,24 +431,24 @@ void WorldSession::HandlePetAbandon( WorldPacket & recv_data )
 void WorldSession::HandlePetUnlearnOpcode(WorldPacket& recvPacket)
 {
     DETAIL_LOG("CMSG_PET_UNLEARN");
-    uint64 guid;
+    ObjectGuid guid;
     recvPacket >> guid;                 // Pet guid
 
     Pet* pet = _player->GetPet();
 
-    if(!pet || pet->getPetType() != HUNTER_PET || pet->m_usedTalentCount == 0)
-        return;
-
-    if(guid != pet->GetGUID())
+    if (!pet || guid != pet->GetObjectGuid())
     {
-        sLog.outError( "HandlePetUnlearnOpcode.Pet %u isn't pet of player %s .", uint32(GUID_LOPART(guid)),GetPlayer()->GetName() );
+        sLog.outError("HandlePetUnlearnOpcode. %s isn't pet of %s .", guid.GetString().c_str(), GetPlayer()->GetObjectGuid().GetString().c_str());
         return;
     }
 
+    if (pet->getPetType() != HUNTER_PET || pet->m_usedTalentCount == 0)
+        return;
+
     CharmInfo *charmInfo = pet->GetCharmInfo();
-    if(!charmInfo)
+    if (!charmInfo)
     {
-        sLog.outError("WorldSession::HandlePetUnlearnOpcode: object (GUID: %u TypeId: %u) is considered pet-like but doesn't have a charminfo!", pet->GetGUIDLow(), pet->GetTypeId());
+        sLog.outError("WorldSession::HandlePetUnlearnOpcode: %s is considered pet-like but doesn't have a charminfo!", pet->GetObjectGuid().GetString().c_str());
         return;
     }
     pet->resetTalents();
@@ -447,36 +458,31 @@ void WorldSession::HandlePetUnlearnOpcode(WorldPacket& recvPacket)
 void WorldSession::HandlePetSpellAutocastOpcode( WorldPacket& recvPacket )
 {
     DETAIL_LOG("CMSG_PET_SPELL_AUTOCAST");
-    uint64 guid;
+    ObjectGuid guid;
     uint32 spellid;
     uint8  state;                                           //1 for on, 0 for off
     recvPacket >> guid >> spellid >> state;
 
-    if(!_player->GetPet() && !_player->GetCharm())
-        return;
-
     Creature* pet = _player->GetMap()->GetAnyTypeCreature(guid);
-
-    if(!pet || (pet != _player->GetPet() && pet != _player->GetCharm()))
+    if (!pet || (guid.GetRawValue() != _player->GetPetGUID() && guid.GetRawValue() != _player->GetCharmGUID()))
     {
-        sLog.outError( "HandlePetSpellAutocastOpcode.Pet %u isn't pet of player %s .", uint32(GUID_LOPART(guid)),GetPlayer()->GetName() );
+        sLog.outError("HandlePetSpellAutocastOpcode. %s isn't pet of %s .", guid.GetString().c_str(), GetPlayer()->GetObjectGuid().GetString().c_str());
         return;
     }
 
     // do not add not learned spells/ passive spells
-    if(!pet->HasSpell(spellid) || IsPassiveSpell(spellid))
+    if (!pet->HasSpell(spellid) || IsPassiveSpell(spellid))
         return;
 
     CharmInfo *charmInfo = pet->GetCharmInfo();
-    if(!charmInfo)
+    if (!charmInfo)
     {
-        sLog.outError("WorldSession::HandlePetSpellAutocastOpcod: object (GUID: %u TypeId: %u) is considered pet-like but doesn't have a charminfo!", pet->GetGUIDLow(), pet->GetTypeId());
+        sLog.outError("WorldSession::HandlePetSpellAutocastOpcod: %s is considered pet-like but doesn't have a charminfo!", guid.GetString().c_str());
         return;
     }
 
-    if(pet->isCharmed())
-    {
-                                                            //state can be used as boolean
+    if (pet->isCharmed())
+    {                       //state can be used as boolean
         pet->GetCharmInfo()->ToggleCreatureAutocast(spellid, state);
     }
     else
@@ -504,16 +510,13 @@ void WorldSession::HandlePetCastSpellOpcode( WorldPacket& recvPacket )
 
     recvPacket >> guid >> cast_count >> spellid >> unk_flags;
 
-    DEBUG_LOG("WORLD: CMSG_PET_CAST_SPELL, cast_count: %u, spellid %u, unk_flags %u", cast_count, spellid, unk_flags);
-
-    if (!GetPlayer()->GetPet() && !GetPlayer()->GetCharm())
-        return;
+    DEBUG_LOG("WORLD: CMSG_PET_CAST_SPELL, %s, cast_count: %u, spellid %u, unk_flags %u", guid.GetString().c_str(), cast_count, spellid, unk_flags);
 
     Creature* pet = GetPlayer()->GetMap()->GetAnyTypeCreature(guid);
 
-    if (!pet || (pet != GetPlayer()->GetPet() && pet != GetPlayer()->GetCharm()))
+    if (!pet || (guid.GetRawValue() != _player->GetPetGUID() && guid.GetRawValue() != _player->GetCharmGUID()))
     {
-        sLog.outError( "HandlePetCastSpellOpcode: Pet %u isn't pet of player %s .", guid.GetCounter(),GetPlayer()->GetName() );
+        sLog.outError("HandlePetCastSpellOpcode: %s isn't pet of %s .", guid.GetString().c_str(), GetPlayer()->GetObjectGuid().GetString().c_str());
         return;
     }
 
@@ -565,7 +568,7 @@ void WorldSession::HandlePetLearnTalent( WorldPacket & recv_data )
 {
     DEBUG_LOG("WORLD: CMSG_PET_LEARN_TALENT");
 
-    uint64 guid;
+    ObjectGuid guid;
     uint32 talent_id, requested_rank;
     recv_data >> guid >> talent_id >> requested_rank;
 
@@ -577,7 +580,7 @@ void WorldSession::HandleLearnPreviewTalentsPet( WorldPacket & recv_data )
 {
     DEBUG_LOG("CMSG_LEARN_PREVIEW_TALENTS_PET");
 
-    uint64 guid;
+    ObjectGuid guid;
     recv_data >> guid;
 
     uint32 talentsCount;
