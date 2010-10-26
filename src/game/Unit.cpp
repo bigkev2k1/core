@@ -1340,6 +1340,9 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 cons
             sLog.outError("CastCustomSpell: unknown spell by caster: %s", GetObjectGuid().GetString().c_str());
         return;
     }
+	
+    if(sObjectMgr.IsSpellDisabled(spellInfo->Id))
+        return;
 
     if (castItem)
         DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
@@ -1397,6 +1400,9 @@ void Unit::CastSpell(float x, float y, float z, SpellEntry const *spellInfo, boo
             sLog.outError("CastSpell(x,y,z): unknown spell by caster: %s", GetObjectGuid().GetString().c_str());
         return;
     }
+	
+    if(sObjectMgr.IsSpellDisabled(spellInfo->Id))
+        return;
 
     if (castItem)
         DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
@@ -1546,6 +1552,28 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage *damageInfo, bool durabilityLoss)
     // Call default DealDamage (send critical in hit info for threat calculation)
     CleanDamage cleanDamage(0, BASE_ATTACK, damageInfo->HitInfo & SPELL_HIT_TYPE_CRIT ? MELEE_HIT_CRIT : MELEE_HIT_NORMAL);
     DealDamage(pVictim, damageInfo->damage, &cleanDamage, SPELL_DIRECT_DAMAGE, damageInfo->schoolMask, spellProto, durabilityLoss);
+    // Check if effect can trigger anything actually (is this a right ATTR ?)
+    if( spellProto->AttributesEx3 & SPELL_ATTR_EX3_UNK16 )
+        return;
+
+    bool hasWeaponDmgEffect = false;
+
+    for (uint32 i = 0; i < 3; ++i)
+    {
+        if (spellProto->Effect[i] == SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL || spellProto->Effect[i] == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE || spellProto->Effect[i] == SPELL_EFFECT_WEAPON_DAMAGE || spellProto->Effect[i] == SPELL_EFFECT_NORMALIZED_WEAPON_DMG)
+        {    
+            hasWeaponDmgEffect = true;
+            break;
+        }
+    }
+
+    if (!(damageInfo->HitInfo & HITINFO_MISS) && hasWeaponDmgEffect) 
+    {
+        WeaponAttackType attType = GetWeaponAttackType(spellProto);
+        // on weapon hit casts
+        if(GetTypeId() == TYPEID_PLAYER && pVictim->isAlive())
+            ((Player*)this)->CastItemCombatSpell(pVictim, attType);
+    }
 }
 
 //TODO for melee need create structure as in
@@ -6167,6 +6195,7 @@ void Unit::Uncharm()
     {
         charm->RemoveSpellsCausingAura(SPELL_AURA_MOD_CHARM);
         charm->RemoveSpellsCausingAura(SPELL_AURA_MOD_POSSESS);
+        charm->SetCharmerGUID(0);
     }
 }
 
@@ -6249,8 +6278,8 @@ void Unit::RemoveGuardians()
         if(Pet* pet = GetMap()->GetPet(guid))
         {
             pet->_Remove(PET_SAVE_AS_DELETED);
-            m_guardianPets.erase(guid);
         }
+        m_guardianPets.erase(guid);
     }
     m_guardianPets.clear();
 }
@@ -8320,8 +8349,8 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         else
         {
             // Hunter mark functionality
-            AuraList const& auras = GetAurasByType(SPELL_AURA_MOD_STALKED);
-            for(AuraList::const_iterator iter = auras.begin(); iter != auras.end(); ++iter)
+            AuraList const& aurasstalked = GetAurasByType(SPELL_AURA_MOD_STALKED);
+            for(AuraList::const_iterator iter = aurasstalked.begin(); iter != aurasstalked.end(); ++iter)
                 if ((*iter)->GetCasterGuid() == u->GetObjectGuid())
                     return true;
 

@@ -271,7 +271,10 @@ void Spell::EffectInstaKill(SpellEffectIndex /*eff_idx*/)
     if (!unitTarget || !unitTarget->isAlive())
         return;
 
-    if (m_caster == unitTarget)                             // prevent interrupt message
+    if(m_spellInfo->Id==52479 && unitTarget->GetTypeId()==TYPEID_PLAYER)
+        return;
+
+    if (m_caster == unitTarget)                              // prevent interrupt message
         finish();
 
     WorldObject* caster = GetCastingObject();               // we need the original casting object
@@ -2667,7 +2670,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 else
                 {
-                    int32 bp = damage;
+                    int32 bp = m_caster->SpellDamageBonusDone(unitTarget, m_spellInfo, uint32(damage), SPELL_DIRECT_DAMAGE);
+                          bp = unitTarget->SpellDamageBonusTaken(m_caster, m_spellInfo, uint32(bp), SPELL_DIRECT_DAMAGE);
                     m_caster->CastCustomSpell(unitTarget, 47632, &bp, NULL, NULL, true);
                 }
                 return;
@@ -4251,10 +4255,10 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                 case SUMMON_PROP_TYPE_PHASING:
                 case SUMMON_PROP_TYPE_LIGHTWELL:
                 case SUMMON_PROP_TYPE_REPAIR_BOT:
+                case SUMMON_PROP_TYPE_DRAKE_VEH:
                     DoSummonWild(eff_idx, summon_prop->FactionId);
                     break;
                 case SUMMON_PROP_TYPE_SIEGE_VEH:
-                case SUMMON_PROP_TYPE_DRAKE_VEH:
                     // TODO
                     // EffectSummonVehicle(i);
                     break;
@@ -4453,12 +4457,23 @@ void Spell::EffectSummonPossessed(SpellEffectIndex eff_idx)
 
     if (summon)
     {
-        summon->AIM_Initialize();
-        // Prevent from AI reinitialized
-        summon->LockAI(true);
-        m_caster->CastSpell(summon, 530, true);
-        summon->LockAI(false);
+        summon->SetLevel(m_caster->getLevel());
+
+        if(CreatureAI* scriptedAI = Script->GetAI(summon))
+        {
+            // Prevent from ScriptedAI reinitialized
+            summon->LockAI(true);
+            m_caster->CastSpell(summon, 530, true);
+            summon->LockAI(false);
+        }
+        else
+            m_caster->CastSpell(summon, 530, true);
+
+        DEBUG_LOG("New possessed creature (guidlow %d, entry %d) summoned. Owner is %d ", summon->GetGUIDLow(), summon->GetEntry(), m_caster->GetGUIDLow());
     }
+    else
+        sLog.outError("New possessed creature (entry %d) NOT summoned. Owner is %d ", summon->GetEntry(), m_caster->GetGUIDLow());
+
 }
 
 void Spell::EffectLearnSpell(SpellEffectIndex eff_idx)
@@ -6151,6 +6166,18 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(m_caster, 50217, true);
                     return;
                 }
+				case 43375:
+				case 43972:		// Mixing Blood for Quest 11306 
+                {
+					switch(urand(0, 2))
+					{
+						case 0 : m_caster->CastSpell(m_caster, 43378, true); break;
+						case 1 : m_caster->CastSpell(m_caster, 43376, true); break;
+						case 2 : m_caster->CastSpell(m_caster, 43377, true); break;
+						case 3 : m_caster->CastSpell(m_caster, 43970, true); break;
+					}
+					break;
+				}
                 case 44455:                                 // Character Script Effect Reverse Cast
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)

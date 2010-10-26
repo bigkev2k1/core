@@ -303,13 +303,12 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     if (owner->GetTypeId() == TYPEID_PLAYER)
     {
         CleanupActionBar();                                     // remove unknown spells from action bar after load
-        if (!GetPetCounter())
+        if (isControlled() && !GetPetCounter())
+        {
             ((Player*)owner)->PetSpellInitialize();
-        if(((Player*)owner)->GetGroup())
-            ((Player*)owner)->SetGroupUpdateFlag(GROUP_UPDATE_PET);
-
-        if (!GetPetCounter())
             ((Player*)owner)->SendTalentsInfoData(true);
+        }
+
     }
 
     if (owner->GetTypeId() == TYPEID_PLAYER && getPetType() == HUNTER_PET)
@@ -2842,9 +2841,9 @@ bool Pet::Summon()
 
     if (owner->GetTypeId() == TYPEID_PLAYER)
     {
-        if (getPetType() == SUMMON_PET || getPetType() == HUNTER_PET && !GetPetCounter())
+        CleanupActionBar();                                     // remove unknown spells from action bar after load
+        if (isControlled() && !GetPetCounter())
         {
-            CleanupActionBar();                                     // remove unknown spells from action bar after load
             if (!GetPetCounter())
                 ((Player*)owner)->PetSpellInitialize();
             ((Player*)owner)->SendTalentsInfoData(true);
@@ -3148,6 +3147,9 @@ void Pet::RegenerateHealth(uint32 diff)
 
 void Pet::ApplyScalingBonus(ScalingAction* action)
 {
+    if (!IsInWorld())
+        return;
+
     switch (action->target)
     {
         case SCALING_TARGET_ALL:
@@ -3195,12 +3197,18 @@ void ApplyScalingBonusWithHelper::operator() (Unit* unit) const
 {
     if (!unit || !unit->GetObjectGuid().IsPet())
         return;
+
     Pet* pet = (Pet*)unit;
-    pet->AddScalingAction(target, stat, apply);
+
+    if (pet->IsInWorld())
+        pet->AddScalingAction(target, stat, apply);
 }
 
 void Pet::ApplyHappinessBonus(bool apply)
 {
+    if (!IsInWorld())
+        return;
+
     if (GetHappinessState() == m_HappinessState)
         return;
     else
