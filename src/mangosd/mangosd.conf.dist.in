@@ -1889,3 +1889,15 @@ PvPAnnouncer.Enable = 1
 PvPAnnouncer.ColorKiller = |CFFFFFF01
 PvPAnnouncer.ColorKilled = |CFFFFFF01
 PvPAnnouncer.ColorArea = |CFFFE8A0E
+
+###################################################################################################################
+#    Flying mounts Everywhere
+#
+#    Allows you to fly through Azeroth
+#
+#    Custom.AllowFlyingMountsEverywhere
+#       Enable/disable Flying mounts Everywhere.
+#       Default: 1 - enabled
+#                0 - disabled
+###################################################################################################################
+Custom.AllowFlyingMountsEverywhere = 1

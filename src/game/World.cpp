@@ -818,6 +818,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_FLOAT_PVP_TOKEN_RESTRICTION,"PvPToken.MapRestriction", 4);
     // PvP Announcer System
     setConfig(CONFIG_BOOL_PVP_ANNOUNCER,"PvPAnnouncer.Enable", true);
+    /*  Flying Everywhere   */
+    setConfig(CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE, "Custom.AllowFlyingMountsEverywhere", true);
     /// Darkrulerz' Customs
 
     if(getConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT) < 1)

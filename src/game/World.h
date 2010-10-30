@@ -331,13 +331,16 @@ enum eConfigBoolValues
     CONFIG_BOOL_VMAP_INDOOR_CHECK,
     CONFIG_BOOL_LOOT_CHESTS_IGNORE_DB,
     CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,
+    
     CONFIG_BOOL_VALUE_COUNT,
     
     /// Darkrulerz' Customs
     // PvP Token
     CONFIG_BOOL_PVP_TOKEN_ENABLE,
     // PvP Announcer
-    CONFIG_BOOL_PVP_ANNOUNCER
+    CONFIG_BOOL_PVP_ANNOUNCER,
+    // Flying Everywhere
+    CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE
     /// Darkrulerz' Customs
 };
 
