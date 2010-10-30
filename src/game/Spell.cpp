@@ -1556,6 +1556,14 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 50988:                                 // Glare of the Tribunal (Halls of Stone)
                 case 59870:                                 // Glare of the Tribunal (h) (Halls of Stone)
                 case 68950:                                 // Fear (ICC: Forge of Souls)
+                case 66001:                                 // Touch of Darkness
+                case 67281:
+                case 67282:
+                case 67283:
+                case 65950:                                 // Touch of Light
+                case 67296:
+                case 67297:
+                case 67298:
                     unMaxTargets = 1;
                     break;
                 case 28542:                                 // Life Drain
@@ -4549,7 +4557,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_MOVING;
         }
 
-        if (!m_IsTriggeredSpell && NeedsComboPoints(m_spellInfo) &&
+        if (!m_IsTriggeredSpell && NeedsComboPoints(m_spellInfo) && !m_caster->isIgnoreUnitState(m_spellInfo) &&
             (!m_targets.getUnitTarget() || m_targets.getUnitTarget()->GetObjectGuid() != ((Player*)m_caster)->GetComboTargetGuid()))
             // warrior not have real combo-points at client side but use this way for mark allow Overpower use
             return m_caster->getClass() == CLASS_WARRIOR ? SPELL_FAILED_CASTER_AURASTATE : SPELL_FAILED_NO_COMBO_POINTS;
@@ -5217,7 +5225,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_EFFECT_CHARGE:
             {
-                if (m_caster->hasUnitState(UNIT_STAT_ROOT))
+                if (m_caster->hasUnitState(UNIT_STAT_ROOT) && !(m_spellInfo->Id == 3411 && m_caster->HasAura(57499)))
                     return SPELL_FAILED_ROOTED;
 
                 break;
@@ -5657,13 +5665,15 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
                 bool dualEffect = false;
                 for(int j = 0; j < MAX_EFFECT_INDEX; ++j)
                 {
-                                                            //TARGET_DUELVSPLAYER is positive AND negative
+                                                            // This effects is positive AND negative. Need for vehicles cast.
                     dualEffect |= (m_spellInfo->EffectImplicitTargetA[j] == TARGET_DUELVSPLAYER
-                                   || m_spellInfo->EffectImplicitTargetA[j] == TARGET_IN_FRONT_OF_CASTER_30);
+                                   || m_spellInfo->EffectImplicitTargetA[j] == TARGET_IN_FRONT_OF_CASTER_30
+                                   || m_spellInfo->EffectImplicitTargetA[j] == TARGET_MASTER
+                                   || m_spellInfo->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES);
                 }
-
                 if (m_caster->IsFriendlyTo(target) && !dualEffect && !IsDispelSpell(m_spellInfo))
                 {
+                    DEBUG_LOG("Charmed creature attempt to cast spell %d, byt target is not valid",m_spellInfo->Id);
                     return SPELL_FAILED_BAD_TARGETS;
                 }
             }
@@ -6649,6 +6659,13 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
             m_spellInfo->EffectImplicitTargetA[eff] != TARGET_AREAEFFECT_CUSTOM &&
             m_spellInfo->EffectImplicitTargetB[eff] != TARGET_AREAEFFECT_CUSTOM )
             return false;
+    }
+
+    if (target != m_caster && m_caster->GetCharmerOrOwnerGUID() == target->GetGUID())
+    {
+        if (m_spellInfo->EffectImplicitTargetA[eff] == TARGET_MASTER ||
+            m_spellInfo->EffectImplicitTargetB[eff] == TARGET_MASTER)
+            return true;
     }
 
     // Check player targets and remove if in GM mode or GM invisibility (for not self casting case)
