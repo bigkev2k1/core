@@ -16,4 +16,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "Calendar.h"
+#include "CalendarMgr.h"
+#include "Database/QueryResult.h"
+#include "ProgressBar.h"
+
+CalendarMgr::CalendarMgr() : m_nextEventID(0), m_nextInviteID(0)
+{
+
+}
+
+CalendarMgr::~CalendarMgr()
+{
+
+}
