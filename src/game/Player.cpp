@@ -1504,7 +1504,7 @@ void Player::Update( uint32 p_time )
     if (IsHasDelayedTeleport())
         TeleportTo(m_teleport_dest, m_teleport_options);
 
-	    // Playerbot mod
+        // Playerbot mod
     if (m_playerbotAI)
         m_playerbotAI->UpdateAI(p_time);
     else if (m_playerbotMgr)
@@ -1639,7 +1639,15 @@ bool Player::BuildEnumData( QueryResult * result, WorldPacket * p_data )
 
     *p_data << uint32(char_flags);                          // character flags
     // character customize flags
-    *p_data << uint32(atLoginFlags & AT_LOGIN_CUSTOMIZE ? CHAR_CUSTOMIZE_FLAG_CUSTOMIZE : CHAR_CUSTOMIZE_FLAG_NONE);
+    // character customize/faction/race change flags
+    if(atLoginFlags & AT_LOGIN_CUSTOMIZE)
+        *p_data << uint32(CHAR_CUSTOMIZE_FLAG_CUSTOMIZE);
+    else if(atLoginFlags & AT_LOGIN_CHANGE_FACTION)
+        *p_data << uint32(CHAR_CUSTOMIZE_FLAG_FACTION);
+    else if(atLoginFlags & AT_LOGIN_CHANGE_RACE)
+        *p_data << uint32(CHAR_CUSTOMIZE_FLAG_RACE);
+    else
+        *p_data << uint32(CHAR_CUSTOMIZE_FLAG_NONE);
     // First login
     *p_data << uint8(atLoginFlags & AT_LOGIN_FIRST ? 1 : 0);
 
@@ -17414,7 +17422,7 @@ void Player::SaveToDB()
     ss << "',";
     ss << uint32(GetByteValue(PLAYER_FIELD_BYTES, 2));
     ss << ")";
-	
+    
     CharacterDatabase.BeginTransaction();
 
     CharacterDatabase.Execute( ss.str().c_str() );
@@ -19260,7 +19268,7 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
             data << uint32(count);
             GetSession()->SendPacket(&data);
 
-			if (it->IsEligibleForRefund() && crItem->ExtendedCost)
+            if (it->IsEligibleForRefund() && crItem->ExtendedCost)
                 AddRefundableItem(it->GetGUID(), crItem->ExtendedCost);
 
             SendNewItem(it, pProto->BuyCount*count, true, false, false);
