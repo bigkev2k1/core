@@ -829,6 +829,8 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
                     switch(spellproto->EffectMiscValue[effIndex])
                     {
                         case SPELLMOD_COST:                 // dependent from bas point sign (negative -> positive)
+                            if(spellproto->Id == 12042)     // Arcane Power workaround
+                                break;
                             if(spellproto->CalculateSimpleValue(effIndex) > 0)
                                 return false;
                             break;
@@ -3613,7 +3615,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const *spell
     {
         uint32 v_map = GetVirtualMapForMapAndZone(map_id, zone_id);
         MapEntry const* mapEntry = sMapStore.LookupEntry(v_map);
-        if (!mapEntry || mapEntry->addon < 1 || !mapEntry->IsContinent())
+        if (!mapEntry || (mapEntry->addon < 1 && !sWorld.getConfig(CONFIG_BOOL_ALLOW_FLIGHT_ON_OLD_MAPS)) || !mapEntry->IsContinent())
             return SPELL_FAILED_INCORRECT_AREA;
     }
 

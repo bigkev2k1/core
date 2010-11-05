@@ -569,6 +569,8 @@ void World::LoadConfigSettings(bool reload)
     if (reload)
         sMapMgr.SetGridCleanUpDelay(getConfig(CONFIG_UINT32_INTERVAL_GRIDCLEAN));
 
+    setConfig(CONFIG_UINT32_NUMTHREADS, "MapUpdate.Threads", 3);
+
     setConfigMin(CONFIG_UINT32_INTERVAL_MAPUPDATE, "MapUpdateInterval", 100, MIN_MAP_UPDATE_DELAY);
     if (reload)
         sMapMgr.SetMapUpdateInterval(getConfig(CONFIG_UINT32_INTERVAL_MAPUPDATE));
@@ -826,6 +828,8 @@ void World::LoadConfigSettings(bool reload)
         setConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT,"PvPToken.ItemCount",1);
 
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
+
+    setConfig(CONFIG_BOOL_ALLOW_FLIGHT_ON_OLD_MAPS, "AllowFlightOnOldMaps", false);
 
     m_VisibleUnitGreyDistance = sConfig.GetFloatDefault("Visibility.Distance.Grey.Unit", 1);
     if(m_VisibleUnitGreyDistance >  MAX_VISIBILITY_DISTANCE)
@@ -1119,12 +1123,6 @@ void World::SetInitialWorldSettings()
     sLog.outString( "Loading Objects Pooling Data...");
     sPoolMgr.LoadFromDB();
 
-    sLog.outString( "Loading Game Event Data...");          // must be after sPoolMgr.LoadFromDB for proper load pool events
-    sLog.outString();
-    sGameEventMgr.LoadFromDB();
-    sLog.outString( ">>> Game Event Data loaded" );
-    sLog.outString();
-
     sLog.outString( "Loading Weather Data..." );
     sObjectMgr.LoadWeatherZoneChances();
 
@@ -1138,6 +1136,12 @@ void World::SetInitialWorldSettings()
     sLog.outString();
     sObjectMgr.LoadQuestRelations();                            // must be after quest load
     sLog.outString( ">>> Quests Relations loaded" );
+    sLog.outString();
+
+    sLog.outString( "Loading Game Event Data...");          // must be after sPoolMgr.LoadFromDB and quests to properly load pool events and quests for events
+    sLog.outString();
+    sGameEventMgr.LoadFromDB();
+    sLog.outString( ">>> Game Event Data loaded" );
     sLog.outString();
 
     sLog.outString( "Loading UNIT_NPC_FLAG_SPELLCLICK Data..." );
@@ -1261,10 +1265,10 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadGameTele();
 
     sLog.outString( "Loading Npc Text Id..." );
-    sObjectMgr.LoadNpcTextId();                                 // must be after load Creature and NpcText
+    sObjectMgr.LoadNpcTextId();                             // must be after load Creature and NpcText
 
     sLog.outString( "Loading Gossip scripts..." );
-    sObjectMgr.LoadGossipScripts();                             // must be before gossip menu options
+    sObjectMgr.LoadGossipScripts();                         // must be before gossip menu options
 
     sLog.outString( "Loading Gossip menus..." );
     sObjectMgr.LoadGossipMenu();
@@ -1273,12 +1277,13 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadGossipMenuItems();
 
     sLog.outString( "Loading Vendors..." );
-    sObjectMgr.LoadVendors();                                   // must be after load CreatureTemplate and ItemTemplate
+    sObjectMgr.LoadVendorTemplates();                       // must be after load ItemTemplate
+    sObjectMgr.LoadVendors();                               // must be after load CreatureTemplate, VendorTemplate, and ItemTemplate
 
     sLog.outString( "Loading Trainers..." );
-    sObjectMgr.LoadTrainerSpell();                              // must be after load CreatureTemplate
+    sObjectMgr.LoadTrainerSpell();                          // must be after load CreatureTemplate
 
-    sLog.outString( "Loading Waypoint scripts..." );            // before loading from creature_movement
+    sLog.outString( "Loading Waypoint scripts..." );        // before loading from creature_movement
     sObjectMgr.LoadCreatureMovementScripts();
 
     sLog.outString( "Loading Waypoints..." );
@@ -1466,7 +1471,7 @@ void World::DetectDBCLang()
 }
 
 /// Update the World !
-void World::Update(uint32 diff)
+void World::Update(uint32 time_, uint32 diff)
 {
     ///- Update the different timers
     for(int i = 0; i < WUPDATE_COUNT; ++i)
@@ -1557,7 +1562,7 @@ void World::Update(uint32 diff)
     {
         m_timers[WUPDATE_OBJECTS].Reset();
         ///- Update objects when the timer has passed (maps, transport, creatures,...)
-        sMapMgr.Update(diff);                // As interval = 0
+        sMapMgr.Update(time_, diff);                // As interval = 0
 
         sBattleGroundMgr.Update(diff);
     }
