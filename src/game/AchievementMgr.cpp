@@ -439,15 +439,15 @@ void AchievementMgr::ResetAchievementCriteria(AchievementCriteriaTypes type, uin
                 if (achievementCriteria->win_rated_arena.flag == miscvalue1)
                     SetCriteriaProgress(achievementCriteria, achievement, 0, PROGRESS_SET);
                 break;
-			case ACHIEVEMENT_CRITERIA_TYPE_GET_KILLING_BLOWS:
-			case ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL:
-			case ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL:
-			case ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE:
-			case ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA:
-			{
-				switch(achievementCriteria->referredAchievement)
-				{
-					case 200:
+            case ACHIEVEMENT_CRITERIA_TYPE_GET_KILLING_BLOWS:
+            case ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL:
+            case ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL:
+            case ACHIEVEMENT_CRITERIA_TYPE_BG_OBJECTIVE_CAPTURE:
+            case ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA:
+            {
+                switch(achievementCriteria->referredAchievement)
+                {
+                    case 200:
                     case 206:
                     case 1252:
                     case 158:

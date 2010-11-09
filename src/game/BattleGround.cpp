@@ -1429,7 +1429,7 @@ uint32 BattleGround::GetPlayerScore(Player *Source, uint32 type)
     {
         case SCORE_KILLING_BLOWS:                           // Killing blows
             return itr->second->KillingBlows;
- 	    case SCORE_DEATHS:                                  // Deaths
+         case SCORE_DEATHS:                                  // Deaths
             return itr->second->Deaths;
         default:
             sLog.outError("BattleGround: Unknown player score type %u", type);
