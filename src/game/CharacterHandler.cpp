@@ -37,6 +37,7 @@
 #include "Util.h"
 #include "ArenaTeam.h"
 #include "Language.h"
+#include "Config/Config.h"
 
 // Playerbot mod:
 #include "playerbot/PlayerbotMgr.h"
@@ -1242,7 +1243,7 @@ void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recv_data)
 
     // character with this name already exist
     ObjectGuid newguid = sObjectMgr.GetPlayerGUIDByName(newname);
-	if (!newguid.IsEmpty() && newguid != guid)
+    if (!newguid.IsEmpty() && newguid != guid)
     {
         WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
         data << uint8(CHAR_CREATE_NAME_IN_USE);
@@ -1255,7 +1256,7 @@ void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recv_data)
     CharacterDatabase.BeginTransaction();
     CharacterDatabase.PExecute("UPDATE characters set name = '%s', race = '%u', at_login = at_login & ~ %u WHERE guid ='%u'", newname.c_str(), race, uint32(used_loginFlag), guid.GetCounter());
     CharacterDatabase.PExecute("DELETE FROM character_declinedname WHERE guid ='%u'", guid.GetCounter());
-
+    std::string WorldDatabaseName = sConfig.GetStringDefault("WorldDatabaseInfo", "");
     if(recv_data.GetOpcode() == CMSG_CHAR_FACTION_CHANGE)
     {
         BattleGroundTeamId team = BG_TEAM_ALLIANCE;
@@ -1275,9 +1276,9 @@ void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recv_data)
         // Delete all current quests
         CharacterDatabase.PExecute("DELETE FROM `character_queststatus` WHERE `status` = 3 AND guid ='%u'",guid.GetCounter());
         if(team == BG_TEAM_ALLIANCE)
-            CharacterDatabase.PExecute("DELETE FROM character_queststatus WHERE guid= '%u' AND quest IN (SELECT entry FROM mangos.quest_template AS quest WHERE RequiredRaces IN (1,4,8,64,1024,1101))",guid.GetCounter());
+            CharacterDatabase.PExecute("DELETE FROM character_queststatus WHERE guid= '%u' AND quest IN (SELECT entry FROM %s.quest_template AS quest WHERE RequiredRaces IN (1,4,8,64,1024,1101))",guid.GetCounter(), WorldDatabaseName.c_str());
         else
-            CharacterDatabase.PExecute("DELETE FROM character_queststatus WHERE guid= '%u' AND quest IN (SELECT entry FROM mangos.quest_template AS quest WHERE RequiredRaces IN (2,16,32,128,512,690))",guid.GetCounter());
+            CharacterDatabase.PExecute("DELETE FROM character_queststatus WHERE guid= '%u' AND quest IN (SELECT entry FROM %s.quest_template AS quest WHERE RequiredRaces IN (2,16,32,128,512,690))",guid.GetCounter(), WorldDatabaseName.c_str());
         // Reset guild
         CharacterDatabase.PExecute("DELETE FROM `guild_member` WHERE `guid`= '%u'",guid.GetCounter());
         // Delete Friend List
