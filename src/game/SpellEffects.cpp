@@ -861,12 +861,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 // Judgement
                 else if (m_spellInfo->Id == 54158)
                 {
-                    // [1 + 0.25 * SPH + 0.16 * AP]
+                    // [1 + 0.27 * SPH + 0.175 * AP]
                     float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
                     int32 holy = m_caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(m_spellInfo));
                     if (holy < 0)
                         holy = 0;
-                    damage += int32(ap * 0.16f) + int32(holy * 0.25f);
+                    damage += int32(ap * 0.175f) + int32(holy * 27 / 100);
                 }
                 break;
             }
@@ -1764,8 +1764,9 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                                 m_caster->CastSpell(m_caster, spellID, true, NULL);
                             return;
                         }
-                        case EFFECT_INDEX_1:
-                            return;                         // additional data for dummy[0]
+                        case EFFECT_INDEX_1:                // additional data for dummy[0]
+                        case EFFECT_INDEX_2:
+                            return;                         
                     }
                     return;
                 }
@@ -1827,27 +1828,22 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    switch(eff_idx)
+                    if (eff_idx == EFFECT_INDEX_0)
                     {
-                        case EFFECT_INDEX_0:
-                        {
-                            Player* pPlayer = (Player*)m_caster;
+                        Player* pPlayer = (Player*)m_caster;
 
-                            uint32 faction_id = m_currentBasePoints[eff_idx];
-                            int32  rep_change = m_currentBasePoints[EFFECT_INDEX_1];
+                        uint32 faction_id = m_currentBasePoints[eff_idx];
+                        int32  rep_change = m_currentBasePoints[EFFECT_INDEX_1];
 
-                            FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction_id);
+                        FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction_id);
 
-                            if (!factionEntry)
-                                return;
+                        if (!factionEntry)
+                            return;
 
-                            // set rep to baserep + basepoints (expecting spillover for oposite faction -> become hated)
-                            pPlayer->GetReputationMgr().SetReputation(factionEntry, rep_change);
-                            break;
-                        }
-                        case EFFECT_INDEX_2:
-                            // unclear what this effect is for.
-                            break;
+                        // set rep to baserep + basepoints (expecting spillover for oposite faction -> become hated)
+                        pPlayer->GetReputationMgr().SetReputation(factionEntry, rep_change);
+
+                        // EFFECT_INDEX_2 most likely update at war state, we already handle this in SetReputation
                     }
 
                     return;
@@ -4029,8 +4025,8 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
     {
         GameObjectInfo const* goInfo = gameObjTarget->GetGOInfo();
         // Arathi Basin banner opening !
-        if (goInfo->type == GAMEOBJECT_TYPE_BUTTON && goInfo->button.noDamageImmune ||
-            goInfo->type == GAMEOBJECT_TYPE_GOOBER && goInfo->goober.losOK)
+        if ((goInfo->type == GAMEOBJECT_TYPE_BUTTON && goInfo->button.noDamageImmune) ||
+            (goInfo->type == GAMEOBJECT_TYPE_GOOBER && goInfo->goober.losOK))
         {
             //CanUseBattleGroundObject() already called in CheckCast()
             // in battleground check
@@ -4347,6 +4343,8 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             // TODO
             // EffectSummonVehicle(i);
                DoSummonVehicle(eff_idx, summon_prop->FactionId);
+//            sLog.outDebug("EffectSummonType: Unhandled summon group type SUMMON_PROP_GROUP_VEHICLE(%u)", summon_prop->Group);
+//            Mangos developers thinking - this summon is not supported. But in this his worked fine :)
             break;
         }
         default:
@@ -4983,8 +4981,16 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
 
 void Spell::DoSummonVehicle(SpellEffectIndex eff_idx, uint32 forceFaction)
 {
-    if (!m_caster || m_caster->hasUnitState(UNIT_STAT_ON_VEHICLE))
+    if (!m_caster)
         return;
+
+    if (m_caster->hasUnitState(UNIT_STAT_ON_VEHICLE))
+    {
+        if (m_spellInfo->Attributes & SPELL_ATTR_UNK7)
+            m_caster->RemoveSpellsCausingAura(SPELL_AURA_CONTROL_VEHICLE);
+        else 
+            return;
+    }
 
     uint32 vehicle_entry = m_spellInfo->EffectMiscValue[eff_idx];
 
@@ -6269,7 +6275,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (const SpellEntry *pSpell = sSpellStore.LookupEntry(m_spellInfo->CalculateSimpleValue(eff_idx)))
                     {
                         // if we used item at least once...
-                        if (pTarget->IsTemporarySummon() && pTarget->GetEntry() == pSpell->EffectMiscValue[eff_idx])
+                        if (pTarget->IsTemporarySummon() && int32(pTarget->GetEntry()) == pSpell->EffectMiscValue[eff_idx])
                         {
                             TemporarySummon* pSummon = (TemporarySummon*)pTarget;
 
