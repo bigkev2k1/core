@@ -1281,6 +1281,10 @@ void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recv_data)
             CharacterDatabase.PExecute("DELETE FROM character_queststatus WHERE guid= '%u' AND quest IN (SELECT entry FROM %s.quest_template AS quest WHERE RequiredRaces IN (2,16,32,128,512,690))",guid.GetCounter(), WorldDatabaseName.c_str());
         // Reset guild
         CharacterDatabase.PExecute("DELETE FROM `guild_member` WHERE `guid`= '%u'",guid.GetCounter());
+        // Remove From Groups
+        CharacterDatabase.PExecute("DELETE FROM `groups` WHERE leaderGuid= '%u'",guid.GetCounter());
+        CharacterDatabase.PExecute("DELETE FROM `group_instance` WHERE `leaderGuid`= '%u'",guid.GetCounter());
+        CharacterDatabase.PExecute("DELETE FROM `group_member` WHERE `memberGuid`= '%u'",guid.GetCounter());
         // Delete Friend List
         CharacterDatabase.PExecute("DELETE FROM `character_social` WHERE `guid`= '%u'",guid.GetCounter());
         CharacterDatabase.PExecute("DELETE FROM `character_social` WHERE `friend` = '%u'",guid.GetCounter());
