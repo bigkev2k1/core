@@ -1347,7 +1347,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                 basepoints[0] = GetShieldBlockValue() * triggerAmount / 100;
                 break;
             }
-
             // Sweeping Strikes
             if (dummySpell->Id == 12328)
             {
@@ -1360,6 +1359,17 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     return SPELL_AURA_PROC_FAILED;
 
                 triggered_spell_id = 26654;
+                break;
+            }
+            // Glyph of Sunder Armor
+            if (dummySpell->Id == 58387)
+            {
+                if (!procSpell)
+                    return SPELL_AURA_PROC_FAILED;
+                target = SelectRandomUnfriendlyTarget(pVictim);
+                if (!target)
+                    return SPELL_AURA_PROC_FAILED;
+                triggered_spell_id = 58567;
                 break;
             }
             break;
@@ -1897,6 +1907,10 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     if (spellProto->SpellFamilyName == SPELLFAMILY_ROGUE &&
                         (spellProto->SpellFamilyFlags & UI64LIT(0x0000000000040000)))
                     {
+                        int32 duration = GetSpellMaxDuration(spellProto);
+                        if(GetTypeId() == TYPEID_PLAYER)
+                            static_cast<Player*>(this)->ApplySpellMod(spellProto->Id, SPELLMOD_DURATION, duration);
+                        (*itr)->SetAuraMaxDuration(duration);
                         (*itr)->GetHolder()->RefreshHolder();
                         return SPELL_AURA_PROC_OK;
                     }
@@ -3445,6 +3459,17 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                     if (GetStat(STAT_AGILITY)  > stat) { trigger_spell_id = 67772;                               }
                     break;
                 }
+                // Blade Warding
+                case 64440:
+                {
+                      if (SpellEntry const *S=sSpellStore.LookupEntry(64442))
+                      {
+                          basepoints[0] = triggeredByAura->GetStackAmount()*CalculateSpellDamage(pVictim, S, EFFECT_INDEX_0);
+                          RemoveAurasDueToSpell(64440);
+                          trigger_spell_id=64442;  //Blade Warding damage
+                      }
+                        break;
+                }
             }
             break;
         case SPELLFAMILY_MAGE:
@@ -3656,6 +3681,10 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                 if (!(procSpell->SpellFamilyFlags & UI64LIT(0x0000000000000020)))
                     return SPELL_AURA_PROC_FAILED;
             }
+            // Entrapment correction
+            else if ((auraSpellInfo->Id == 19184 || auraSpellInfo->Id == 19387 || auraSpellInfo->Id == 19388) &&
+                !(procSpell->SpellFamilyFlags & UI64LIT(0x200000000000) || procSpell->SpellFamilyFlags2 & UI64LIT(0x40000)))
+                    return SPELL_AURA_PROC_FAILED;
             break;
         case SPELLFAMILY_PALADIN:
         {
@@ -4372,6 +4401,16 @@ SpellAuraProcResult Unit::HandleAddPctModifierAuraProc(Unit* /*pVictim*/, uint32
 
                 CastSpell(this, 28682, true, castItem, triggeredByAura);
                 return (procEx & PROC_EX_CRITICAL_HIT) ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED; // charge update only at crit hits, no hidden cooldowns
+            }
+            break;
+        }
+        case SPELLFAMILY_PRIEST:
+        {
+            // Serendipity
+            if (spellInfo->SpellIconID == 2900)
+            {
+                RemoveAurasDueToSpell(spellInfo->Id);
+                return SPELL_AURA_PROC_OK;
             }
             break;
         }

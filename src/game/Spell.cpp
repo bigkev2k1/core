@@ -754,13 +754,16 @@ void Spell::prepareDataForTriggerSystem()
         {
             case SPELLFAMILY_MAGE:
                 // Arcane Missles / Blizzard triggers need do it
-                if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200080))
+                if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200080)|| m_spellInfo->SpellIconID == 212)
                     m_canTrigger = true;
                 // Clearcasting trigger need do it
                 else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000200000000) && m_spellInfo->SpellFamilyFlags2 & 0x8)
                     m_canTrigger = true;
                 // Replenish Mana, item spell with triggered cases (Mana Agate, etc mana gems)
                 else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000010000000000))
+                    m_canTrigger = true;
+                // Living Bomb - can trigger Hot Streak
+                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x1000000000000))
                     m_canTrigger = true;
                 break;
             case SPELLFAMILY_WARLOCK:
@@ -2071,6 +2074,31 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             }
             else if (m_spellInfo->Id==52759)                // Ancestral Awakening (special target selection)
                 FillRaidOrPartyHealthPriorityTargets(targetUnitMap, m_caster, m_caster, radius, 1, true, false, true);
+            else if (m_spellInfo->Id == 54171)              // Divine Storm
+                FillRaidOrPartyHealthPriorityTargets(targetUnitMap, m_caster, m_caster, radius, 3, true, false, true);
+            else if (m_spellInfo->Id == 59725)              // Improved Spell Reflection
+            {
+                if (m_caster->HasAura(23920, EFFECT_INDEX_0) )
+                    m_caster->RemoveAurasDueToSpell(23920); // will be replaced by imp. spell refl. aura
+
+                Unit::AuraList const& lDummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
+                for(Unit::AuraList::const_iterator i = lDummyAuras.begin(); i != lDummyAuras.end(); ++i)
+                {
+                    if((*i)->GetSpellProto()->SpellIconID == 1935)
+                    {
+                        unMaxTargets = (*i)->GetModifier()->m_amount + 1;   // +1 because we are also applying this to the caster
+                        break;
+                    }
+                }
+
+                radius = 20.0f;     // as mentioned in the spell's tooltip (data doesn't appear in dbc)
+
+                FillRaidOrPartyTargets(targetUnitMap, m_caster, m_caster, radius, false, false, true);
+                targetUnitMap.sort(TargetDistanceOrder(m_caster));
+                if (targetUnitMap.size() > unMaxTargets)
+                    targetUnitMap.resize(unMaxTargets);
+                break;
+            }
             else
                 FillRaidOrPartyTargets(targetUnitMap, m_caster, m_caster, radius, true, true, IsPositiveSpell(m_spellInfo->Id));
             break;
@@ -3224,12 +3252,9 @@ void Spell::handle_immediate()
     // start channeling if applicable
     if(IsChanneledSpell(m_spellInfo))
     {
-        int32 duration = GetSpellDuration(m_spellInfo);
+        int32 duration = m_caster->CalculateBaseSpellDuration(m_spellInfo);
         if (duration)
         {
-            // Apply duration mod
-            if(Player* modOwner = m_caster->GetSpellModOwner())
-                modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
             m_spellState = SPELL_STATE_CASTING;
             SendChannelStart(duration);
         }

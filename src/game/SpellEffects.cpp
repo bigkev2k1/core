@@ -778,6 +778,11 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 {
                     damage += int32(m_caster->GetTotalAttackPowerValue(RANGED_ATTACK)*0.1f);
                 }
+                // Black Arrow
+                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0800000000000080))
+                {
+                    damage += int32(m_caster->GetTotalAttackPowerValue(RANGED_ATTACK)*0.1f);
+                }
                 // Volley
                 else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x00002000))
                 {
@@ -3881,6 +3886,8 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
             break;
         case 31930:                                         // Judgements of the Wise
         case 48542:                                         // Revitalize (mana restore case)
+            damage = damage * unitTarget->GetMaxPower(POWER_MANA) / 100;
+            break;
         case 63375:                                         // Improved Stormstrike
         case 67545:                                         // Empowered Fire
         case 68082:                                         // Glyph of Seal of Command
@@ -5929,7 +5936,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
             // check if we can interrupt spell
             if ((curSpellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) && curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE )
             {
-                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), unitTarget->CalculateSpellDuration(m_spellInfo, eff_idx, unitTarget));
+                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), unitTarget->CalculateSpellDuration(m_caster, GetSpellDuration(m_spellInfo), m_spellInfo, eff_idx));
                 unitTarget->InterruptSpell(CurrentSpellTypes(i),false);
             }
         }
