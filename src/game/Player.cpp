@@ -596,7 +596,7 @@ Player::Player (WorldSession *session): Unit(), m_mover(this), m_camera(this), m
 
     m_lastFallTime = 0;
     m_lastFallZ = 0;
-	m_anticheat = new AntiCheat(this);
+    m_anticheat = new AntiCheat(this);
 
     /*  Flying Everywhere   */
     m_flytimer = time(NULL);
@@ -640,7 +640,7 @@ Player::~Player ()
 
     delete m_declinedname;
     delete m_runes;
-	delete m_anticheat;
+    delete m_anticheat;
 
     // Playerbot mod
     if (m_playerbotAI) {
@@ -1498,11 +1498,11 @@ void Player::Update( uint32 p_time )
     if (IsHasDelayedTeleport())
         TeleportTo(m_teleport_dest, m_teleport_options);
 
-        // Playerbot mod
+    // Playerbot mod
     if (m_playerbotAI)
-        m_playerbotAI->UpdateAI(update_diff);
+        m_playerbotAI->UpdateAI(p_time);
     else if (m_playerbotMgr)
-        m_playerbotMgr->UpdateAI(update_diff);
+        m_playerbotMgr->UpdateAI(p_time);
 }
 
 void Player::SetDeathState(DeathState s)
