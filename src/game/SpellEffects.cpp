@@ -7488,7 +7488,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
             }
             break;
         }
-       case SPELLFAMILY_WARRIOR:
+        case SPELLFAMILY_WARRIOR:
         {
             switch(m_spellInfo->Id)
             {
@@ -7496,9 +7496,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 {
                     if (!unitTarget || !unitTarget->isAlive())
                         return;
-
                     // remove immunity effects
-                    unitTarget->RemoveAurasBySpellMechanic(MECHANIC_IMMUNE_SHIELD);
+                    m_caster->CastSpell(unitTarget, 39897, true);
                     break;
                 }
             }
