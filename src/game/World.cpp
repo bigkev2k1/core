@@ -812,21 +812,11 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_TIMERBAR_FIRE_MAX,        "TimerBar.Fire.Max", 1);
     
     /// Darkrulerz' Customs
-    // PvP Token System
-    setConfig(CONFIG_BOOL_PVP_TOKEN_ENABLE,"PvPToken.Enable", true);
-    setConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMID,"PvPToken.ItemID", 29434);
-    setConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT,"PvPToken.ItemCount", 1);
-    setConfig(CONFIG_FLOAT_PVP_TOKEN_GOLD,"PvPToken.Gold", 100000);
-    setConfig(CONFIG_FLOAT_PVP_TOKEN_RESTRICTION,"PvPToken.MapRestriction", 4);
-    // PvP Announcer System
+    /*  PvP Announcer System    */
     setConfig(CONFIG_BOOL_PVP_ANNOUNCER,"PvPAnnouncer.Enable", true);
     /*  Flying Everywhere   */
     setConfig(CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE, "Custom.AllowFlyingMountsEverywhere", true);
     /// Darkrulerz' Customs
-
-    if(getConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT) < 1)
-        setConfig(CONFIG_FLOAT_PVP_TOKEN_ITEMCOUNT,"PvPToken.ItemCount",1);
-
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
 
     setConfig(CONFIG_BOOL_ALLOW_FLIGHT_ON_OLD_MAPS, "AllowFlightOnOldMaps", false);
