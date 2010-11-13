@@ -19429,9 +19429,6 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
             data << uint32(count);
             GetSession()->SendPacket(&data);
 
-            if (it->IsEligibleForRefund() && crItem->ExtendedCost)
-                AddRefundableItem(it->GetGUID(), crItem->ExtendedCost);
-
             SendNewItem(it, pProto->BuyCount*count, true, false, false);
         }
     }
@@ -19476,9 +19473,6 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
             data << uint32(crItem->maxcount > 0 ? new_count : 0xFFFFFFFF);
             data << uint32(count);
             GetSession()->SendPacket(&data);
-
-            if (it->IsEligibleForRefund() && crItem->ExtendedCost)
-                AddRefundableItem(it->GetGUID(), crItem->ExtendedCost);
 
             SendNewItem(it, pProto->BuyCount*count, true, false, false);
 
@@ -23051,36 +23045,6 @@ void Player::_LoadRandomBGStatus(QueryResult *result)
         m_IsBGRandomWinner = true;
         delete result;
     }
-}
-
-void Player::AddRefundableItem(uint64 itemGUID,  uint32 extendedcost)
-{
-    std::pair<uint64, uint32> RefundableItemInfo;
-    
-    if (Item *item = GetItemByGuid(itemGUID))
-    {
-        item->SetPlayedtimeField(GetTotalPlayedTime());
-
-        RefundableItemInfo.first = itemGUID;
-        RefundableItemInfo.second = extendedcost;
-
-        sObjectMgr.mItemRefundableMap.insert(RefundableItemInfo);
-    }
-}
-
-void Player::RemoveRefundableItem(uint64 itemGUID)
-{
-    sObjectMgr.mItemRefundableMap.erase(itemGUID);
-}
-
-uint32 Player::LookupRefundableItem(ObjectGuid itemGUID)
-{
-    ItemRefundableMap::iterator itr = sObjectMgr.mItemRefundableMap.find(itemGUID.GetRawValue());
-
-    if (itr != sObjectMgr.mItemRefundableMap.end())
-        return itr->second;
-
-    return 0;
 }
 
 /*  Flying Everywhere   */

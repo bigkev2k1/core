@@ -219,11 +219,6 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data )
             pl->SendMailResult(0, MAIL_SEND, MAIL_ERR_CANT_SEND_WRAPPED_COD);
             return;
         }
-
-        //When you send item its no longer refundable
-        if(item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_REFUNDABLE))
-            item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_REFUNDABLE);
-
         items[i] = item;
     }
 

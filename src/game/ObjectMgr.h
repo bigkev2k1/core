@@ -629,8 +629,6 @@ struct GraveYardData
 typedef std::multimap<uint32, GraveYardData> GraveYardMap;
 typedef std::pair<GraveYardMap::const_iterator, GraveYardMap::const_iterator> GraveYardMapBounds;
 
-typedef std::map<uint64, uint32> ItemRefundableMap;
-
 enum ConditionType
 {                                                           // value1       value2  for the Condition enumed
     CONDITION_NONE                  = 0,                    // 0            0
@@ -1309,8 +1307,6 @@ class ObjectMgr
         {
             return mSpellClickInfoMap.equal_range(creature_id);
         }
-
-        ItemRefundableMap mItemRefundableMap;
 
         uint32 GetItemConvert(uint32 itemEntry, uint32 raceMask) const
         {

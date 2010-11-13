@@ -2522,13 +2522,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool HasTitle(CharTitlesEntry const* title) { return HasTitle(title->bit_index); }
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
-         /*********************************************************/
-        /***                ITEM REFUND SYSTEM                 ***/
-        /*********************************************************/
-        void AddRefundableItem(uint64 itemGUID,  uint32 extendedCost);
-        void RemoveRefundableItem(uint64 itemGUID);
-        uint32 LookupRefundableItem(ObjectGuid itemGUID);
-
         bool canSeeSpellClickOn(Creature const* creature) const;
 
         // Playerbot mod:
