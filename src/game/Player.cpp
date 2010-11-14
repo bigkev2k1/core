@@ -597,9 +597,6 @@ Player::Player (WorldSession *session): Unit(), m_mover(this), m_camera(this), m
     m_lastFallTime = 0;
     m_lastFallZ = 0;
     m_anticheat = new AntiCheat(this);
-
-    /*  Flying Everywhere   */
-    m_flytimer = time(NULL);
 }
 
 Player::~Player ()
@@ -10987,69 +10984,6 @@ uint8 Player::CanUseItem( Item *pItem, bool not_loading ) const
 {
     if (pItem)
     {
-        /*  Flying Everywhere   */
-        if (sWorld.getConfig(CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE))
-        {
-            ItemPrototype const *iProto = pItem->GetProto();
-            if (iProto)
-            {
-                for(int i = 0; i < 5; i++)
-                {
-                    SpellEntry const *sEntry = sSpellStore.LookupEntry(iProto->Spells[i].SpellId);
-                    if (sEntry)
-                    {
-                        Player* player = ((Player*)this);
-                        if(isFlyingSpell(sEntry))
-                        {
-                            if(player->HasAuraTypeFlyingSpell())
-                                player->RemoveFlyingSpells();
-                            else if(player->HasAuraTypeFlyingFormSpell())
-                                player->RemoveFlyingFormSpells();
-                            else if(player->HasAuraTypeRunningFormSpell())
-                                player->RemoveRunningFormSpells();
-
-                            if(player->CanUseFlyingMounts(sEntry))
-                            {
-                                SpellAuraHolder* holder = CreateSpellAuraHolder(sEntry,player,player);
-                                for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
-                                {
-                                    Aura* aur = CreateAura(sEntry, SpellEffectIndex(j), NULL, holder, player, player, NULL);
-                                    holder->AddAura(aur,SpellEffectIndex(j));
-                                }
-                                player->AddSpellAuraHolder(holder);
-                            }
-                            return EQUIP_ERR_OK;
-                        }
-                        else if(isFlyingFormSpell(sEntry))
-                        {
-                            if(player->HasAuraTypeFlyingSpell())
-                                player->RemoveFlyingSpells();
-                            else if(player->HasAuraTypeFlyingFormSpell())
-                                player->RemoveFlyingFormSpells();
-                            /*else if(player->HasAuraTypeRunningFormSpell())
-                                player->RemoveRunningFormSpells();*/
-
-                            if(player->CanUseFlyingMounts(sEntry))
-                            {
-                                SpellAuraHolder* holder = CreateSpellAuraHolder(sEntry,player,player);
-                                for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
-                                {
-                                    Aura* aur = CreateAura(sEntry, SpellEffectIndex(j), NULL, holder, player, player, NULL);
-                                    holder->AddAura(aur,SpellEffectIndex(j));
-                                }
-                                player->AddSpellAuraHolder(holder);
-                            }
-                            return EQUIP_ERR_OK;
-                        }
-                        else if (isRunningSpell(sEntry) || isRunningFormSpell(sEntry))
-                        {
-                            player->RemoveAllFlyingSpells();
-                            return EQUIP_ERR_OK;
-                        }
-                    }
-                }
-            }
-        }
         DEBUG_LOG( "STORAGE: CanUseItem item = %u", pItem->GetEntry());
 
         if (!isAlive() && not_loading)
@@ -11938,28 +11872,6 @@ void Player::DestroyItemCount( Item* pItem, uint32 &count, bool update )
 {
     if(!pItem)
         return;
-
-    /*  Flying Everywhere   */
-    if (sWorld.getConfig(CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE))
-    {
-        ItemPrototype const *pProto = sObjectMgr.GetItemPrototype(pItem->GetEntry());
-        if(pProto)
-        {
-            for(int i = 0; i < 5; i++)
-            {
-                SpellEntry const *sEntry = sSpellStore.LookupEntry(pProto->Spells[i].SpellId);
-                if(!sEntry)
-                    continue;
-
-                if(isFlyingSpell(sEntry) || isFlyingFormSpell(sEntry))
-                {
-                    pItem->SetSpellCharges(0, 1);
-                    pItem->SetState(ITEM_CHANGED, this);
-                    return;
-                }
-            }
-        }
-    }
 
     DEBUG_LOG( "STORAGE: DestroyItemCount item (GUID: %u, Entry: %u) count = %u", pItem->GetGUIDLow(),pItem->GetEntry(), count);
 
@@ -21782,11 +21694,6 @@ bool Player::CanStartFlyInArea(uint32 mapid, uint32 zone, uint32 area) const
 {
     if (isGameMaster())
         return true;
-
-    /*  Flying Everywhere   */
-    if (sWorld.getConfig(CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE))
-        return true;
-
     // continent checked in SpellMgr::GetSpellAllowedInLocationError at cast and area update
     uint32 v_map = GetVirtualMapForMapAndZone(mapid, zone);
 
@@ -23045,144 +22952,4 @@ void Player::_LoadRandomBGStatus(QueryResult *result)
         m_IsBGRandomWinner = true;
         delete result;
     }
-}
-
-/*  Flying Everywhere   */
-void Player::FlyingMountsSpellsToItems()
-{
-    for (PlayerSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
-    {
-        SpellEntry const *sEntry = sSpellStore.LookupEntry(itr->first);
-        if(!sEntry)
-            continue;
-
-        if(! (isFlyingSpell(sEntry) || isFlyingFormSpell(sEntry)) )
-            continue;
-
-        uint32 itemId = 0;
-        for (uint32 id = 0; id < sItemStorage.MaxEntry; id++)
-        {
-            ItemPrototype const *pProto = sObjectMgr.GetItemPrototype(id);
-            if(!pProto)
-                continue;
-
-            for(int i = 0; i < 5; i++)
-            {
-                if(pProto->Spells[i].SpellId == itr->first)
-                {
-                    itemId = id;
-                    break;
-                }
-            }
-        }
-        if(!HasItemCount(itemId, 1, false))
-        {
-            //Adding items
-            uint32 noSpaceForCount = 0;
-
-            // check space and find places
-            ItemPosCountVec dest;
-            uint8 msg = CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, itemId, 1, &noSpaceForCount );
-
-            if(!dest.empty())                         // can't add any
-            {
-                Item* item = StoreNewItem( dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
-                SendNewItem(item, 1,false,false);
-            }
-        }
-    }
-
-    for(int i = EQUIPMENT_SLOT_START; i < INVENTORY_SLOT_ITEM_END; ++i)
-    {
-        Item *pItem = GetItemByPos( INVENTORY_SLOT_BAG_0, i );
-        if(!pItem)
-            continue;
-
-        ItemPrototype const *pProto = sObjectMgr.GetItemPrototype(pItem->GetEntry());
-        if(!pProto)
-            continue;
-
-        for(int i = 0; i < 5; i++)
-        {
-            SpellEntry const *sEntry = sSpellStore.LookupEntry(pProto->Spells[i].SpellId);
-            if(!sEntry)
-                continue;
-
-            if(! (isFlyingSpell(sEntry) || isFlyingFormSpell(sEntry)) )
-                continue;
-
-            if(HasSpell(pProto->Spells[i].SpellId))
-            {
-                uint16 RindingSkill = GetSkillValue(SKILL_RIDING);
-                removeSpell(pProto->Spells[i].SpellId, false, false);
-                SetSkill(SKILL_RIDING, RindingSkill, 300);
-                break;
-            }
-
-        }        
-    }
-
-    for(int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
-    {
-        if(Bag* pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, i ))
-        {
-            for(uint32 j = 0; j < pBag->GetBagSize(); ++j)
-            {
-                Item* pItem = GetItemByPos( i, j );
-                if(!pItem)
-                    continue;
-
-                ItemPrototype const *pProto = sObjectMgr.GetItemPrototype(pItem->GetEntry());
-                if(!pProto)
-                    continue;
-
-                for(int i = 0; i < 5; i++)
-                {
-                    SpellEntry const *sEntry = sSpellStore.LookupEntry(pProto->Spells[i].SpellId);
-                    if(!sEntry)
-                        continue;
-
-                    if(! (isFlyingSpell(sEntry) || isFlyingFormSpell(sEntry)) )
-                        continue;
-
-                    if(HasSpell(pProto->Spells[i].SpellId))
-                    {
-                        uint16 RindingSkill = GetSkillValue(SKILL_RIDING);
-                        removeSpell(pProto->Spells[i].SpellId, false, false);
-                        SetSkill(SKILL_RIDING, RindingSkill, 300);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
-
-bool Player::CanUseFlyingMounts(SpellEntry const* sEntry)
-{
-    if(!GetFlyingMountTimer())
-        return false;
-
-    uint32 v_map = GetVirtualMapForMapAndZone(GetMapId(), GetZoneId());
-    MapEntry const* mapEntry = sMapStore.LookupEntry(v_map);
-    if(!getAttackers().empty())
-    {
-        WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
-        data << uint8(0);
-        data << uint32(sEntry->Id);
-        data << uint8(SPELL_FAILED_TARGET_IN_COMBAT); 
-        GetSession()->SendPacket(&data);
-        return false;
-    }
-    if( (!mapEntry)/* || (mapEntry->Instanceable())*/ || (mapEntry->IsDungeon()) ||
-        (mapEntry->IsRaid()) || (mapEntry->IsBattleArena()) || (mapEntry->IsBattleGround()) )
-    {
-        WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
-        data << uint8(0);
-        data << uint32(sEntry->Id);
-        data << uint8(SPELL_FAILED_NOT_HERE); 
-        GetSession()->SendPacket(&data);
-        return false;
-    }
-    return true;
 }

@@ -814,8 +814,6 @@ void World::LoadConfigSettings(bool reload)
     /// Darkrulerz' Customs
     /*  PvP Announcer System    */
     setConfig(CONFIG_BOOL_PVP_ANNOUNCER,"PvPAnnouncer.Enable", true);
-    /*  Flying Everywhere   */
-    setConfig(CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE, "Custom.AllowFlyingMountsEverywhere", true);
     /// Darkrulerz' Customs
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
 

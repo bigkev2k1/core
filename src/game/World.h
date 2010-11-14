@@ -329,9 +329,7 @@ enum eConfigBoolValues
     
     /// Darkrulerz' Customs
     // PvP Announcer
-    CONFIG_BOOL_PVP_ANNOUNCER,
-    // Flying Everywhere
-    CONFIG_BOOL_ALLOW_FLYING_MOUNTS_EVERYWHERE
+    CONFIG_BOOL_PVP_ANNOUNCER
     /// Darkrulerz' Customs
 };
 
