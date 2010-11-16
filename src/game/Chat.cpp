@@ -749,6 +749,10 @@ ChatCommand * ChatHandler::getCommandTable()
         { "repairitems",    SEC_GAMEMASTER,     true,  &ChatHandler::HandleRepairitemsCommand,         "", NULL },
         { "stable",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleStableCommand,              "", NULL },
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", NULL },
+        { "jail",           SEC_GAMEMASTER,     false, &ChatHandler::HandleJailCommand,                "", NULL },
+        { "unjail",         SEC_GAMEMASTER,     false, &ChatHandler::HandleUnjailCommand,              "", NULL },
+        { "listjail",       SEC_GAMEMASTER,     false, &ChatHandler::HandleListjailCommand,            "", NULL },
+
         //Playerbot mod
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", NULL },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", NULL },

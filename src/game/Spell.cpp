@@ -4495,6 +4495,10 @@ void Spell::CastPreCastSpells(Unit* target)
 
 SpellCastResult Spell::CheckCast(bool strict)
 {
+    // Not allow spells in jail
+    if( ((Player*)m_caster)->IsInJail() )
+        return SPELL_FAILED_NOT_HERE;
+
     // check cooldowns to prevent cheating (ignore passive spells, that client side visual only)
     if (m_caster->GetTypeId()==TYPEID_PLAYER && !(m_spellInfo->Attributes & SPELL_ATTR_PASSIVE) &&
         ((Player*)m_caster)->HasSpellCooldown(m_spellInfo->Id) && !m_caster->isIgnoreUnitState(m_spellInfo))
@@ -5411,7 +5415,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_BAD_TARGETS;
 
                 Player* target = sObjectMgr.GetPlayer(((Player*)m_caster)->GetSelectionGuid());
-                if( !target || ((Player*)m_caster) == target || !target->IsInSameRaidWith((Player*)m_caster) )
+                // Not allow summon jailed player
+                if( !target || ((Player*)m_caster) == target || !target->IsInSameRaidWith((Player*)m_caster) || target->IsInJail() )
                     return SPELL_FAILED_BAD_TARGETS;
 
                 // check if our map is dungeon

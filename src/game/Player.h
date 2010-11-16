@@ -1152,6 +1152,14 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsInWater() const { return m_isInWater; }
         bool IsUnderWater() const;
 
+        bool Player::IsInJail()
+        {
+            if(GetZoneId() == 3817)
+                return true;
+            else
+                return false;
+        }
+
         void SendInitialPacketsBeforeAddToMap();
         void SendInitialPacketsAfterAddToMap();
         void SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg = 0);

@@ -93,6 +93,14 @@ void WorldSession::HandleGroupInviteOpcode( WorldPacket & recv_data )
         return;
     }
 
+    // Jailed player - not allowed
+    if( player->IsInJail() || GetPlayer()->IsInJail() )
+    {
+        SendPartyResult(PARTY_OP_INVITE, membername, ERR_PLAYER_WRONG_FACTION);	// if this isn't the right one, perhaps ERR_INVITE_RESTRICTED is
+        return;
+    }
+
+
     Group *group = GetPlayer()->GetGroup();
     if( group && group->isBGGroup() )
         group = GetPlayer()->GetOriginalGroup();

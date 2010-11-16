@@ -568,6 +568,9 @@ class ChatHandler
         bool HandleRepairitemsCommand(char* args);
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);
+        bool HandleJailCommand(char *args);
+        bool HandleUnjailCommand(char *args);
+        bool HandleListjailCommand(char* args);
         bool HandlePlayerbotCommand(char* args);
         bool HandleQuitCommand(char* args);
 

@@ -5060,3 +5060,163 @@ bool ChatHandler::HandleTitlesCurrentCommand(char* args)
 
     return true;
 }
+
+/*** SIMPLE JAIL ***/
+bool ChatHandler::HandleJailCommand(char *args)
+{
+    if(!*args)
+        return false;
+
+    std::string name = args;
+    if(!normalizePlayerName(name))
+    {
+        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    Player *player = sObjectMgr.GetPlayer(name.c_str());
+
+    if(player)
+    {
+        // GMs cannot be jailed
+        if(player->GetSession()->GetSecurity() != SEC_PLAYER)
+        {
+            PSendSysMessage("%s is a GM and cannot be jailed", name.c_str());
+            return true;
+        }
+
+        if(player->IsBeingTeleported())
+        {
+            PSendSysMessage(LANG_IS_TELEPORTED, player->GetName());
+            return true;
+        }
+
+        // Stop flight if player using taxi
+        if(player->IsFlying())
+        {
+            player->GetMotionMaster()->MovementExpired();
+            player->m_taxi.ClearTaxiDestinations();
+        }
+
+        // Remove player from group
+        if(player->GetGroup())
+            player->RemoveFromGroup();
+
+        if(player->IsInJail())
+        {
+            PSendSysMessage("Player %s is already in jail.", name.c_str());
+            return true;
+        }
+
+        // Teleport player to jail - Current position is in a huge box (zone 3817)
+        //                 map  X  Y    Z   orient.
+        player->TeleportTo( 13, 7, 1, -144, 3 );
+        ChatHandler(player).PSendSysMessage("You have been jailed!");
+        PSendSysMessage("Player %s is now in jail.", name.c_str());
+    }
+    else if(uint64 guid = sObjectMgr.GetPlayerGUIDByName(name)) // if player is offline
+    {
+        PSendSysMessage("Player %s is now in jail (offline)", name.c_str());
+        Player::SavePositionInDB(13, 7, 1, -144, 3, 3817, guid);
+        return true;
+    }
+    else
+    {
+        PSendSysMessage(LANG_NO_PLAYER, args);
+        return true;
+    }
+    return true;
+}
+
+bool ChatHandler::HandleUnjailCommand(char *args)
+{
+    if(!*args)
+        return false;
+
+    std::string name = args;
+
+    if(!normalizePlayerName(name))
+    {
+        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    Player *player = sObjectMgr.GetPlayer(name.c_str());
+
+    if(player)
+    {
+        if(!player->IsInJail())
+        {
+            PSendSysMessage("Player %s is not in jail and cannot be unjailed.", name.c_str());
+            return true;
+        }
+
+        // Teleport to player's homebind when unjailed
+        player->TeleportToHomebind();
+        PSendSysMessage("Player %s is now unjailed.", name.c_str());
+        ChatHandler(player).PSendSysMessage("You have been removed from the jail.");
+        return true;
+    }
+    else if(uint64 guid = sObjectMgr.GetPlayerGUIDByName(name)) // player is offline
+    {
+        // Load homebind location from DB
+        QueryResult *result = CharacterDatabase.PQuery("SELECT map,zone,position_x,position_y,position_z FROM character_homebind WHERE guid = '%u'", guid);
+        if (result)
+        {
+            Field *fields = result->Fetch();
+
+            uint16 hb_map = fields[0].GetUInt32();
+            uint16 hb_zone = fields[1].GetUInt16();
+            float hb_x = fields[2].GetFloat();
+            float hb_y = fields[3].GetFloat();
+            float hb_z = fields[4].GetFloat();
+            delete result;
+
+            // save homebind position
+            Player::SavePositionInDB(hb_map, hb_x, hb_y, hb_z, 0, hb_zone, guid);
+            PSendSysMessage("Player %s is now unjailed.", name.c_str());
+        }
+        else
+        {
+            PSendSysMessage("Player doesnt have homebind and cannot be unjailed");
+            return true;
+        }
+    }
+    else
+        PSendSysMessage(LANG_NO_PLAYER, args);
+
+    return true;
+}
+
+bool ChatHandler::HandleListjailCommand(char* /*args*/)
+{
+    // Save all players for updated positions
+    ObjectAccessor::Instance().SaveAllPlayers();
+
+    QueryResult *result = CharacterDatabase.PQuery("SELECT name,online FROM characters WHERE zone = '3817'");
+
+    if(result)
+    {
+        PSendSysMessage("Current Jailed Players:");
+        PSendSysMessage("-----------------------");
+        do
+        {
+            Field *fields = result->Fetch();
+
+            std::string name = fields[0].GetCppString();
+            uint8 online = fields[1].GetUInt8();
+            if(online == 0)
+                PSendSysMessage("%20s (offline)", name.c_str() );
+            else
+                PSendSysMessage("%20s", name.c_str() );
+        }while( result->NextRow() );
+        PSendSysMessage("-----------------------");
+
+        delete result;
+    }
+    else
+        PSendSysMessage("Jail empty.");
+    return true;
+}
