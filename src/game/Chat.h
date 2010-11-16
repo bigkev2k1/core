@@ -47,7 +47,7 @@ class ChatCommand
 {
     public:
         const char *       Name;
-        uint32             SecurityLevel;                  // function pointer required correct align (use uint32)
+        uint32             SecurityLevel;                   // function pointer required correct align (use uint32)
         bool               AllowConsole;
         bool (ChatHandler::*Handler)(char* args);
         std::string        Help;
@@ -568,7 +568,6 @@ class ChatHandler
         bool HandleRepairitemsCommand(char* args);
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);
-        bool HandlePlayerbotCommand(char* args);
         bool HandleQuitCommand(char* args);
 
         bool HandleAHBotOptionsCommand(char* args);
