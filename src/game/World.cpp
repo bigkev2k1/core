@@ -924,6 +924,9 @@ void World::LoadConfigSettings(bool reload)
     sLog.outString( "WORLD: VMap support included. LineOfSight:%i, getHeight:%i, indoorCheck:%i",
         enableLOS, enableHeight, getConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK) ? 1 : 0);
     sLog.outString( "WORLD: VMap data directory is: %svmaps",m_dataPath.c_str());
+
+    // Darkrulerz' Customs
+    setConfig(CONFIG_UINT32_BASE_PET_SCALE			, "Custom.PetScale"			, 1);
 }
 
 /// Initialize the World

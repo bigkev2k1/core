@@ -1900,3 +1900,15 @@ PvPAnnouncer.Enable = 1
 PvPAnnouncer.ColorKiller = |CFFFFFF01
 PvPAnnouncer.ColorKilled = |CFFFFFF01
 PvPAnnouncer.ColorArea = |CFFFE8A0E
+
+###################################################################################################################
+#    Darkrulerz' Customs
+#
+#    Custom.PetScale
+#        Change the base pet scale
+#        Default: 1 (Near-Blizzlike)
+#    NOTE: Do not know what will happen when set higher
+#
+###################################################################################################################
+
+Custom.PetScale = 1
