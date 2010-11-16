@@ -30,9 +30,6 @@
     <ClCompile Include="..\..\src\game\AchievementMgr.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\AntiCheat.cpp">
-      <Filter>World/Handlers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\game\ArenaTeamHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
@@ -505,7 +502,7 @@
     <ClCompile Include="..\..\src\game\CalendarMgr.cpp">
       <Filter>Object</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\MapUpdater.cpp">
+    <ClCompile Include="..\..\src\game\AntiCheat.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
   </ItemGroup>
