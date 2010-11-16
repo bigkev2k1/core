@@ -927,6 +927,9 @@ void World::LoadConfigSettings(bool reload)
 
     // Darkrulerz' Customs
     setConfig(CONFIG_UINT32_BASE_PET_SCALE			, "Custom.PetScale"			, 1);
+    // External Mail
+    setConfig(CONFIG_BOOL_EXTERNAL_MAIL_ENABLED     , "ExternalMail.Enabled"    , false);
+    setConfig(CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL  , "ExternalMail.Interval"   , 1);
 }
 
 /// Initialize the World
@@ -1347,6 +1350,7 @@ void World::SetInitialWorldSettings()
     m_timers[WUPDATE_UPTIME].SetInterval(getConfig(CONFIG_UINT32_UPTIME_UPDATE)*MINUTE*IN_MILLISECONDS);
                                                             //Update "uptime" table based on configuration entry in minutes.
     m_timers[WUPDATE_CORPSES].SetInterval(20*MINUTE*IN_MILLISECONDS);
+    m_timers[WUPDATE_EXT_MAIL].SetInterval(m_configUint32Values[CONFIG_UINT32_EXTERNAL_MAIL_INTERVAL] * MINUTE * IN_MILLISECONDS); // External mail
     m_timers[WUPDATE_DELETECHARS].SetInterval(DAY*IN_MILLISECONDS); // check for chars to delete every day
     m_timers[WUPDATE_AUTOBROADCAST].SetInterval(abtimer);
 
@@ -1596,6 +1600,13 @@ void World::Update(uint32 diff)
             m_timers[WUPDATE_AUTOBROADCAST].Reset();
             SendBroadcast();
         }
+    }
+
+    ///- Process External Mail Queue when necessary
+    if(m_configBoolValues[CONFIG_BOOL_EXTERNAL_MAIL_ENABLED] && m_timers[WUPDATE_EXT_MAIL].Passed())
+    {
+        WorldSession::SendExternalMails();
+        m_timers[WUPDATE_EXT_MAIL].Reset();
     }
 
     /// </ul>

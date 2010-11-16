@@ -1888,6 +1888,23 @@ CharDelete.MinLevel = 10
 CharDelete.KeepDays = 30
 
 ###################################################################################################################
+#    EXTERNAL MAIL QUEUE
+#
+#    ExternalMail.Enabled
+#        Enable external mail delivery
+#        Default: 0 (disabled)
+#                 1 (enabled)
+#
+#    ExternalMail.Interval
+#        Interval at which to process the external mail queue (In minutes)
+#        Default: 1 minute
+#
+###################################################################################################################
+
+ExternalMail.Enabled = 0
+ExternalMail.Interval = 1
+
+##################################################################################################################
 #    PvP Announcer System
 #
 #    PvPAnnouncer.Enable
