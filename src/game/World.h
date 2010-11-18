@@ -334,6 +334,8 @@ enum eConfigBoolValues
     /// Darkrulerz' Customs
     // External Mail
     CONFIG_BOOL_EXTERNAL_MAIL_ENABLED,
+    // PvP Announcer
+    CONFIG_BOOL_PVP_ANNOUNCER,
     /// Darkrulerz' Customs
 
     CONFIG_BOOL_VALUE_COUNT
@@ -518,6 +520,9 @@ class World
         void SendZoneMessage(uint32 zone, WorldPacket *packet, WorldSession *self = 0, uint32 team = 0);
         void SendZoneText(uint32 zone, const char *text, WorldSession *self = 0, uint32 team = 0);
         void SendServerMessage(ServerMessageType type, const char *text = "", Player* player = NULL);
+
+        //PVP Announcer
+        void SendPvPAnnounce(Player* killer, Player* killed);
 
         /// Are we in the middle of a shutdown?
         bool IsShutdowning() const { return m_ShutdownTimer > 0; }
