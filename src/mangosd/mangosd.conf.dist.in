@@ -1904,20 +1904,6 @@ CharDelete.KeepDays = 30
 ExternalMail.Enabled = 0
 ExternalMail.Interval = 1
 
-##################################################################################################################
-#    PvP Announcer System
-#
-#    PvPAnnouncer.Enable
-#       Enable/disable PvP Announcer system.
-#       Default: 1 - enabled
-#                0 - disabled
-###################################################################################################################
-
-PvPAnnouncer.Enable = 1
-PvPAnnouncer.ColorKiller = |CFFFFFF01
-PvPAnnouncer.ColorKilled = |CFFFFFF01
-PvPAnnouncer.ColorArea = |CFFFE8A0E
-
 ###################################################################################################################
 #    Darkrulerz' Customs
 #
