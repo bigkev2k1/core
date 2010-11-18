@@ -2088,10 +2088,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     case 48025:                             // Headless Horseman's Mount
                         Spell::SelectMountByAreaAndSkill(target, 51621, 48024, 51617, 48023, 0);
                         return;
-                    case 50141:                             // Blood Oath
-                        // Blood Oath
-                        target->CastSpell(target, 50001, true, NULL, this);
-                        return;
                     case 55328:                                 // Stoneclaw Totem I
                         target->CastSpell(target, 5728, true);
                         return;
@@ -2584,6 +2580,9 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     }
                     return;
                 }
+                case 47178:                                 // Plague Effect Self
+                    target->SetFeared(apply, GetCasterGUID(), GetId());
+                    return;
                 case 58204:                                 // LK Intro VO (1)
                     if (target->GetTypeId() == TYPEID_PLAYER)
                     {
@@ -5121,14 +5120,6 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
 
         switch (spellProto->SpellFamilyName)
         {
-            case SPELLFAMILY_GENERIC:
-            {
-                // Pounce Bleed
-                if (spellProto->SpellIconID == 147 && spellProto->SpellVisual[0] == 0)
-                    // $AP*0.18/6 bonus per tick
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 3 / 100);
-                break;
-            }
             case SPELLFAMILY_WARRIOR:
             {
                 // Rend
@@ -5149,14 +5140,6 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             }
             case SPELLFAMILY_DRUID:
             {
-                // Rake
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x0000000000001000) && spellProto->Effect[EFFECT_INDEX_2] == SPELL_EFFECT_ADD_COMBO_POINTS)
-                    // $AP*0.18/3 bonus per tick
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 6 / 100);
-                // Lacerate
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x000000010000000000))
-                    // $AP*0.05/5 bonus per tick
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) / 100);
                 // Rip
                 if (spellProto->SpellFamilyFlags & UI64LIT(0x000000000000800000))
                 {
@@ -5178,10 +5161,6 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                     }
                     m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * cp / 100);
                 }
-                // Lock Jaw
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x1000000000000000))
-                    // 0.15*$AP
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 15 / 100);
                 break;
             }
             case SPELLFAMILY_ROGUE:
@@ -5201,30 +5180,6 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                     if (cp > 5) cp = 5;
                     m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * AP_per_combo[cp]);
                 }
-                // Garrote
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x000000000000000100))
-                    // $AP*0.07 bonus per tick
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 7 / 100);
-                // Deadly Poison
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x0000000000010000))
-                    // 0.12*$AP / 4 * amount of stack
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 3 * GetStackAmount() / 100);
-                break;
-            }
-            case SPELLFAMILY_HUNTER:
-            {
-                // Serpent Sting
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x0000000000004000))
-                    // $RAP*0.2/5 bonus per tick
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.2 / 5);
-                // Immolation Trap
-                if ((spellProto->SpellFamilyFlags & UI64LIT(0x0000000000000004)) && spellProto->SpellIconID == 678)
-                    // $RAP*0.1/5 bonus per tick
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 10 / 500);
-                // Black Arrow
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x0800000000000000))
-                    // $RAP*0.1/5 bonus per tick
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 10 / 500);
                 break;
             }
             case SPELLFAMILY_PALADIN:
@@ -5238,15 +5193,6 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                     if (holy < 0)
                         holy = 0;
                     m_modifier.m_amount += int32(GetStackAmount()) * (int32(ap * 0.025f) + int32(holy * 13 / 1000));
-                }
-                break;
-            }
-            case SPELLFAMILY_DEATHKNIGHT:
-            {
-                //Frost Fever and Blood Plague AP scale
-                if (spellProto->SpellFamilyFlags & UI64LIT(0x400080000000000))
-                {
-                    m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.055f * 1.15f);
                 }
                 break;
             }

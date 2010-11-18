@@ -4013,12 +4013,12 @@ bool Unit::isInAccessablePlaceFor(Creature const* c) const
 
 bool Unit::IsInWater() const
 {
-    return GetBaseMap()->IsInWater(GetPositionX(),GetPositionY(), GetPositionZ());
+    return GetTerrain()->IsInWater(GetPositionX(),GetPositionY(), GetPositionZ());
 }
 
 bool Unit::IsUnderWater() const
 {
-    return GetBaseMap()->IsUnderWater(GetPositionX(),GetPositionY(),GetPositionZ());
+    return GetTerrain()->IsUnderWater(GetPositionX(),GetPositionY(),GetPositionZ());
 }
 
 void Unit::DeMorph()
@@ -4813,10 +4813,24 @@ void Unit::RemoveAuraHolderFromStack(uint32 spellId, int32 stackAmount, uint64 c
     {
         if (!casterGUID || iter->second->GetCasterGUID() == casterGUID)
         {
-            if (iter->second->ModStackAmount(-stackAmount))
+            if (iter->second->GetAuraCharges() > 0)
             {
-                RemoveSpellAuraHolder(iter->second, mode);
-                break;
+                while (stackAmount--)
+                {
+                    if (iter->second->DropAuraCharge())
+                    {
+                        RemoveSpellAuraHolder(iter->second, mode);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (iter->second->ModStackAmount(-stackAmount))
+                {
+                    RemoveSpellAuraHolder(iter->second, mode);
+                    break;
+                }
             }
         }
     }
@@ -6455,9 +6469,13 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int3
         coeff = damagetype == DOT ? bonus->dot_damage : bonus->direct_damage;
 
         // apply ap bonus at done part calculation only (it flat total mod so common with taken)
-        if (donePart && bonus->ap_bonus)
+        if (donePart && (bonus->ap_bonus || bonus->ap_dot_bonus))
         {
-            float ap_bonus = bonus->ap_bonus;
+            float ap_bonus = 0;
+            if (damagetype == DOT)
+                ap_bonus = bonus->ap_dot_bonus;
+            else
+                ap_bonus = bonus->ap_bonus;
 
             // Impurity
             if (GetTypeId() == TYPEID_PLAYER && spellProto->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
@@ -6466,7 +6484,7 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int3
                     ap_bonus += ((spell->CalculateSimpleValue(EFFECT_INDEX_0) * ap_bonus) / 100.0f);
             }
 
-            total += int32(ap_bonus * (GetTotalAttackPowerValue(BASE_ATTACK) + ap_benefit));
+            total += int32(ap_bonus * (GetTotalAttackPowerValue(IsSpellRequiresRangedAP(spellProto) ? RANGED_ATTACK : BASE_ATTACK) + ap_benefit));
         }
     }
     // Default calculation
@@ -9236,7 +9254,6 @@ int32 Unit::CalculateBaseSpellDuration(SpellEntry const* spellProto, uint32* per
     }
 
     bool applyHaste = (spellProto->AttributesEx5 & SPELL_ATTR_EX5_AFFECTED_BY_HASTE) != 0;
-
 
     if (!applyHaste)
     {

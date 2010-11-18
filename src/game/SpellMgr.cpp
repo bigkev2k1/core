@@ -1042,7 +1042,7 @@ void SpellMgr::LoadSpellTargetPositions()
                 // additional requirements
                 if (spellInfo->Effect[i]==SPELL_EFFECT_BIND && spellInfo->EffectMiscValue[i])
                 {
-                    uint32 zone_id = sMapMgr.GetAreaId(st.target_mapId, st.target_X, st.target_Y, st.target_Z);
+                    uint32 zone_id = sTerrainMgr.GetAreaId(st.target_mapId, st.target_X, st.target_Y, st.target_Z);
                     if (int32(zone_id) != spellInfo->EffectMiscValue[i])
                     {
                         sLog.outErrorDb("Spell (Id: %u) listed in `spell_target_position` expected point to zone %u bit point to zone %u.",Spell_ID, spellInfo->EffectMiscValue[i], zone_id);
@@ -1369,7 +1369,7 @@ void SpellMgr::LoadSpellBonuses()
     mSpellBonusMap.clear();                             // need for reload case
     uint32 count = 0;
     //                                                0      1             2          3
-    QueryResult *result = WorldDatabase.Query("SELECT entry, direct_bonus, dot_bonus, ap_bonus FROM spell_bonus_data");
+    QueryResult *result = WorldDatabase.Query("SELECT entry, direct_bonus, dot_bonus, ap_bonus, ap_dot_bonus FROM spell_bonus_data");
     if( !result )
     {
         barGoLink bar( 1 );
@@ -1407,6 +1407,7 @@ void SpellMgr::LoadSpellBonuses()
         sbe.direct_damage = fields[1].GetFloat();
         sbe.dot_damage    = fields[2].GetFloat();
         sbe.ap_bonus      = fields[3].GetFloat();
+        sbe.ap_dot_bonus   = fields[4].GetFloat();
 
         bool need_dot = false;
         bool need_direct = false;
