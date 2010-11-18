@@ -135,6 +135,7 @@ void WorldSession::moveItems(Item* myItems[], Item* hisItems[])
     if (!trader)
         return;
 
+
     for(int i = 0; i < TRADE_SLOT_TRADED_COUNT; ++i)
     {
         ItemPosCountVec traderDst;
@@ -267,7 +268,7 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& recvPacket)
     Item *hisItems[TRADE_SLOT_TRADED_COUNT] = { NULL, NULL, NULL, NULL, NULL, NULL };
     bool myCanCompleteTrade=true,hisCanCompleteTrade=true;
 
-    // set before checks to properly undo at problems (it already set in to client)
+    // set before checks for propertly undo at problems (it already set in to client)
     my_trade->SetAccepted(true);
 
     // not accept case incorrect money amount
@@ -522,7 +523,7 @@ void WorldSession::SendCancelTrade()
 
 void WorldSession::HandleCancelTradeOpcode(WorldPacket& /*recvPacket*/)
 {
-    // sent also after LOGOUT COMPLETE
+    // sended also after LOGOUT COMPLETE
     if (_player)                                            // needed because STATUS_LOGGEDIN_OR_RECENTLY_LOGGOUT
         _player->TradeCancel(true);
 }

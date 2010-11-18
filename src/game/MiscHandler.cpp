@@ -747,22 +747,20 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
 
     if(!GetPlayer()->isGameMaster())
     {
-        bool missingItem = false;
-        bool missingLevel = false;
-        bool missingQuest = false;
-
+        uint32 missingLevel = 0;
         if(GetPlayer()->getLevel() < at->requiredLevel && !sWorld.getConfig(CONFIG_BOOL_INSTANCE_IGNORE_LEVEL))
-            missingLevel = true;
+            missingLevel = at->requiredLevel;
 
         // must have one or the other, report the first one that's missing
+        uint32 missingItem = 0;
         if(at->requiredItem)
         {
             if(!GetPlayer()->HasItemCount(at->requiredItem, 1) &&
                 (!at->requiredItem2 || !GetPlayer()->HasItemCount(at->requiredItem2, 1)))
-                missingItem = true;
+                missingItem = at->requiredItem;
         }
         else if(at->requiredItem2 && !GetPlayer()->HasItemCount(at->requiredItem2, 1))
-            missingItem = true;
+            missingItem = at->requiredItem2;
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(at->target_mapId);
         if(!mapEntry)
@@ -770,41 +768,42 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
 
         bool isRegularTargetMap = GetPlayer()->GetDifficulty(mapEntry->IsRaid()) == REGULAR_DIFFICULTY;
 
+        uint32 missingKey = 0;
         if (!isRegularTargetMap)
         {
             if(at->heroicKey)
             {
                 if(!GetPlayer()->HasItemCount(at->heroicKey, 1) &&
                     (!at->heroicKey2 || !GetPlayer()->HasItemCount(at->heroicKey2, 1)))
-                    missingItem = true;
+                    missingKey = at->heroicKey;
             }
             else if(at->heroicKey2 && !GetPlayer()->HasItemCount(at->heroicKey2, 1))
-                missingItem = true;
+                missingKey = at->heroicKey2;
         }
 
+        uint32 missingQuest = 0;
         if (!isRegularTargetMap && mapEntry->IsDungeon())
         {
             if (at->requiredQuestHeroic && !GetPlayer()->GetQuestRewardStatus(at->requiredQuestHeroic))
-                missingQuest = true;
+                missingQuest = at->requiredQuestHeroic;
         }
         else
         {
             if (at->requiredQuest && !GetPlayer()->GetQuestRewardStatus(at->requiredQuest))
-                missingQuest = true;
+                missingQuest = at->requiredQuest;
         }
 
-        if(missingItem || missingLevel || missingQuest)
+        if(missingLevel || missingItem || missingKey || missingQuest)
         {
-            // hack for "Opening of the Dark Portal"
-            if(missingQuest && at->target_mapId == 269)
+            // TODO: all this is probably wrong
+            if(missingItem)
+                SendAreaTriggerMessage(GetMangosString(LANG_LEVEL_MINREQUIRED_AND_ITEM), at->requiredLevel, ObjectMgr::GetItemPrototype(missingItem)->Name1);
+            else if(missingKey)
+                GetPlayer()->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_DIFFICULTY, isRegularTargetMap ? DUNGEON_DIFFICULTY_NORMAL : DUNGEON_DIFFICULTY_HEROIC);
+            else if(missingQuest)
                 SendAreaTriggerMessage("%s", at->requiredFailedText.c_str());
-            else if(missingQuest && mapEntry->IsContinent())// do not report anything for quest areatriggers
-                return;
-            // hack for TBC heroics
-            else if(missingLevel && !mapEntry->IsRaid() && GetPlayer()->GetDifficulty(false) == DUNGEON_DIFFICULTY_HEROIC && mapEntry->addon == 1)
-                SendAreaTriggerMessage(GetMangosString(LANG_LEVEL_MINREQUIRED), at->requiredLevel);
-            else
-                GetPlayer()->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_DIFFICULTY, GetPlayer()->GetDifficulty(mapEntry->IsRaid()));
+            else if(missingLevel)
+                SendAreaTriggerMessage(GetMangosString(LANG_LEVEL_MINREQUIRED), missingLevel);
             return;
         }
     }
