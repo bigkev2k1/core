@@ -81,10 +81,8 @@ void WorldSession::HandlePetAction( WorldPacket & recv_data )
         return;
     }
 
-    if (((Creature*)pet)->IsPet())
-        GetPlayer()->CallForAllControlledUnits(DoPetActionWithHelper(GetPlayer(), flag, spellid, petGuid, targetGuid),false,false,false);
-    else if (pet->isCharmed())
-        GetPlayer()->DoPetAction(GetPlayer(), flag, spellid, petGuid, targetGuid);
+    if (((Creature*)pet)->IsPet() || pet->isCharmed())
+        GetPlayer()->CallForAllControlledUnits(DoPetActionWithHelper(GetPlayer(), flag, spellid, petGuid, targetGuid),CONTROLLED_PET|CONTROLLED_GUARDIANS|CONTROLLED_CHARM);
 }
 
 void WorldSession::HandlePetStopAttack(WorldPacket& recv_data)
@@ -419,7 +417,8 @@ void WorldSession::HandlePetAbandon( WorldPacket & recv_data )
                 pet->SetPower(POWER_HAPPINESS ,(feelty-50000) > 0 ?(feelty-50000) : 0);
             }
 
-            GetPlayer()->RemovePet((Pet*)pet,PET_SAVE_AS_DELETED);
+            ((Pet*)pet)->Unsummon(PET_SAVE_AS_DELETED, GetPlayer());
+
         }
         else if (pet->GetObjectGuid() == GetPlayer()->GetCharmGuid())
         {
@@ -539,10 +538,8 @@ void WorldSession::HandlePetCastSpellOpcode( WorldPacket& recvPacket )
 
     recvPacket >> targets->ReadForCaster(pet);
 
-    if (pet->IsPet())
-        GetPlayer()->CallForAllControlledUnits(DoPetCastWithHelper(GetPlayer(), cast_count, targets, spellInfo ),false,false,false);
-    else if (pet->isCharmed())
-        pet->DoPetCastSpell(GetPlayer(), cast_count, targets, spellInfo);
+    if (pet->IsPet() || pet->isCharmed())
+        GetPlayer()->CallForAllControlledUnits(DoPetCastWithHelper(GetPlayer(), cast_count, targets, spellInfo ),CONTROLLED_PET|CONTROLLED_GUARDIANS|CONTROLLED_CHARM);
 
     if (targets)
        delete targets;
