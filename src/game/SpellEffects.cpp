@@ -6674,6 +6674,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!m_caster || m_caster->GetTypeId() != TYPEID_UNIT)
                         return;
                     m_caster->RemoveAurasDueToSpell(530);
+					m_caster->RemoveAurasDueToSpell(51923);
                     return;
                 }
                 case 52751:                                 // Death Gate
