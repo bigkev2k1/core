@@ -3987,7 +3987,7 @@ bool ChatHandler::HandleCharacterChangeFactionCommand(char* args)
 
         // TODO : add text into database
 		PSendSysMessage(LANG_CUSTOMIZE_PLAYER_GUID, oldNameLink.c_str(), target_guid.GetCounter());
-        CharacterDatabase.PExecute("UPDATE characters SET at_login = at_login | '64' WHERE guid = '%u'", GUID_LOPART(target_guid));
+        CharacterDatabase.PExecute("UPDATE characters SET at_login = at_login | '64' WHERE guid = '%u'", target_guid.GetCounter());
     }
 
     return true;
@@ -4015,7 +4015,7 @@ bool ChatHandler::HandleCharacterChangeRaceCommand(char* args)
 
         // TODO : add text into database
         PSendSysMessage(LANG_CUSTOMIZE_PLAYER_GUID, oldNameLink.c_str(), target_guid.GetCounter());
-        CharacterDatabase.PExecute("UPDATE characters SET at_login = at_login | '128' WHERE guid = '%u'", GUID_LOPART(target_guid));
+        CharacterDatabase.PExecute("UPDATE characters SET at_login = at_login | '128' WHERE guid = '%u'", target_guid.GetCounter());
     }
 
     return true;
@@ -5106,7 +5106,7 @@ bool ChatHandler::HandleJailCommand(char *args)
     else if(uint64 guid = sObjectMgr.GetPlayerGUIDByName(name)) // if player is offline
     {
         PSendSysMessage("Player %s is now in jail (offline)", name.c_str());
-        Player::SavePositionInDB(13, 7, 1, -144, 3, 3817, guid);
+        Player::SavePositionInDB(guid, 13, 7, 1, -144, 3, 3817);
         return true;
     }
     else
@@ -5163,7 +5163,7 @@ bool ChatHandler::HandleUnjailCommand(char *args)
             delete result;
 
             // save homebind position
-            Player::SavePositionInDB(hb_map, hb_x, hb_y, hb_z, 0, hb_zone, guid);
+            Player::SavePositionInDB(guid, hb_map, hb_x, hb_y, hb_z, 0, hb_zone);
             PSendSysMessage("Player %s is now unjailed.", name.c_str());
         }
         else

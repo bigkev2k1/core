@@ -1615,21 +1615,21 @@ struct SpellRuneCostEntry
     bool NoRunicPowerGain() const { return runePowerGain == 0; }
 };
 
-struct SpellShapeshiftEntry
+struct SpellShapeshiftFormEntry
 {
-    uint32 ID;                                              // 0
-    //uint32 buttonPosition;                                // 1 unused
-    //char*  Name[16];                                      // 2-17 unused
-    //uint32 NameFlags;                                     // 18 unused
-    uint32 flags1;                                          // 19
-    int32  creatureType;                                    // 20 <=0 humanoid, other normal creature types
-    //uint32 unk1;                                          // 21 unused, related to next field
-    uint32 attackSpeed;                                     // 22
-    uint32 modelID_A;                                       // 23 alliance modelid (0 means no model)
-    uint32 modelID_H;                                       // 24 horde modelid (but only for one form)
-    //uint32 unk3;                                          // 25 unused always 0
-    //uint32 unk4;                                          // 26 unused always 0
-    uint32 spellId[8];                                      // 27-34 spells which appear in the bar after shapeshifting
+    uint32 ID; // 0
+    //uint32 buttonPosition; // 1 unused
+    //char* Name[16]; // 2-17 unused
+    //uint32 NameFlags; // 18 unused
+    uint32 flags1; // 19
+    int32 creatureType; // 20 <=0 humanoid, other normal creature types
+    //uint32 unk1; // 21 unused, related to next field
+    uint32 attackSpeed; // 22
+    uint32 modelID_A; // 23 alliance modelid (0 means no model)
+    uint32 modelID_H; // 24 horde modelid (but only for one form)
+    //uint32 unk3; // 25 unused always 0
+    //uint32 unk4; // 26 unused always 0
+    uint32 spellId[8]; // 27-34 spells which appear in the bar after shapeshifting
 };
 
 struct SpellDifficultyEntry
