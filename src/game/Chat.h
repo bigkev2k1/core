@@ -133,6 +133,7 @@ class ChatHandler
         bool HandleAccountSetAddonCommand(char* args);
         bool HandleAccountSetGmLevelCommand(char* args);
         bool HandleAccountSetPasswordCommand(char* args);
+        bool HandleAHBotOptionsCommand(char* args);
 
         bool HandleAuctionAllianceCommand(char* args);
         bool HandleAuctionGoblinCommand(char* args);
@@ -574,8 +575,6 @@ class ChatHandler
         bool HandleListjailCommand(char* args);
         bool HandlePlayerbotCommand(char* args);
         bool HandleQuitCommand(char* args);
-
-        bool HandleAHBotOptionsCommand(char* args);
 
         //! Development Commands
         bool HandleSaveAllCommand(char* args);

@@ -37,7 +37,7 @@
 #include "UpdateMask.h"
 #include "Unit.h"
 #include "Language.h"
-#include "AuctionHouseBot.h"
+#include "AuctionHouseBot/AuctionHouseBot.h"
 #include "DBCStores.h"
 #include "BattleGroundMgr.h"
 #include "Item.h"
@@ -937,7 +937,7 @@ void MailDraft::SendReturnToSender(uint32 sender_acc, ObjectGuid sender_guid, Ob
     }
 
     // Hack - if aucbot functional, drop returned to this mail anywhere
-    if (sender_guid == auctionbot.GetAHBplayerGUID())
+    if (sender_guid == auctionbot.GetAHBObjectGuid())
     {
         deleteIncludedItems(true);
         return;
@@ -967,7 +967,10 @@ void MailDraft::SendReturnToSender(uint32 sender_acc, ObjectGuid sender_guid, Ob
     uint32 deliver_delay = needItemDelay ? sWorld.getConfig(CONFIG_UINT32_MAIL_DELIVERY_DELAY) : 0;
 
     // will delete item or place to receiver mail list
-    SendMailTo(MailReceiver(receiver,receiver_guid), MailSender(MAIL_NORMAL, sender_guid.GetCounter()), MAIL_CHECK_MASK_RETURNED, deliver_delay);
+    if (sender_guid == auctionbot.GetAHBObjectGuid())
+        SendMailTo(MailReceiver(receiver,receiver_guid), MailSender(MAIL_CREATURE,  sender_guid.GetCounter()), MAIL_CHECK_MASK_RETURNED, deliver_delay);
+    else
+        SendMailTo(MailReceiver(receiver,receiver_guid), MailSender(MAIL_NORMAL, sender_guid.GetCounter()), MAIL_CHECK_MASK_RETURNED, deliver_delay);
 }
 /**
  * Sends a mail.
@@ -980,7 +983,7 @@ void MailDraft::SendReturnToSender(uint32 sender_acc, ObjectGuid sender_guid, Ob
 void MailDraft::SendMailTo(MailReceiver const& receiver, MailSender const& sender, MailCheckMask checked, uint32 deliver_delay)
 {
     // Hack - if aucbot functional, drop sended to this mail anywhere
-    if (receiver.GetPlayerGuid() == auctionbot.GetAHBplayerGUID())
+    if (receiver.GetPlayerGuid() == auctionbot.GetAHBObjectGuid())
     {
         if (!m_items.empty())
         {
@@ -990,6 +993,14 @@ void MailDraft::SendMailTo(MailReceiver const& receiver, MailSender const& sende
     }
 
     Player* pReceiver = receiver.GetPlayer();               // can be NULL
+
+    if (receiver.GetPlayerGuid() == auctionbot.GetAHBObjectGuid())
+    {
+        if (sender.GetMailMessageType() == MAIL_AUCTION && !m_items.empty())
+            deleteIncludedItems(true);
+
+        return;
+    }
 
     if (pReceiver)
         prepareItems(pReceiver);                            // generate mail template items
