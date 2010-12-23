@@ -21792,7 +21792,7 @@ uint32 Player::CalculateTalentsPoints() const
 {
     uint32 base_talent = getLevel() < 10 ? 0 : getLevel()-9;
 
-    if(getClass() != CLASS_DEATH_KNIGHT)
+    if(getClass() != CLASS_DEATH_KNIGHT || sWorld.getConfig(CONFIG_BOOL_DK_TP))
         return uint32(base_talent * sWorld.getConfig(CONFIG_FLOAT_RATE_TALENT));
 
     uint32 talentPointsForLevel = getLevel() < 56 ? 0 : getLevel() - 55;

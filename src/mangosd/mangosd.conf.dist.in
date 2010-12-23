@@ -1845,6 +1845,12 @@ PvPAnnouncer.ColorArea = |CFFFE8A0E
 #        Default: 1 (Near-Blizzlike)
 #    NOTE: Do not know what will happen when set higher
 #
+#    Custom.DKStartTalentPoints
+#        Enables the start talent points of a DK
+#        Default: 0 - disabled (Blizzlike)
+#                 1 - enabled
+#
 ###################################################################################################################
 
 Custom.PetScale = 1
+Custom.DKStartTalentPoints.Enable = 0

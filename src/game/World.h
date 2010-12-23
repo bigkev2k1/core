@@ -338,6 +338,8 @@ enum eConfigBoolValues
     CONFIG_BOOL_EXTERNAL_MAIL_ENABLED,
     // PvP Announcer
     CONFIG_BOOL_PVP_ANNOUNCER,
+    // DK Start TalentPoints
+    CONFIG_BOOL_DK_TP,
     /// Darkrulerz' Customs
 
     CONFIG_BOOL_VALUE_COUNT

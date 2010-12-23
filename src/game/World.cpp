@@ -795,6 +795,8 @@ void World::LoadConfigSettings(bool reload)
     /// Darkrulerz' Customs
     /*  PvP Announcer System    */
     setConfig(CONFIG_BOOL_PVP_ANNOUNCER,"PvPAnnouncer.Enable", true);
+    /*  DK Start TalentPoints   */
+    setConfig(CONFIG_BOOL_DK_TP,"Custom.DKStartTalentPoints.Enable", false);
     /// Darkrulerz' Customs
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
 
