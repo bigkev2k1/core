@@ -1850,7 +1850,31 @@ PvPAnnouncer.ColorArea = |CFFFE8A0E
 #        Default: 0 - disabled (Blizzlike)
 #                 1 - enabled
 #
+#    Custom.ArmorPenetrationCap.Enable
+#        Enables an armor penetration cap
+#        Default: 0 - disabled (Blizzlike)
+#                 1 - enabled
+#
+#    Custom.ArmorPenetrationCap.Value
+#        Max percentage of armor penetration allowed
+#        Default: 100
+
+#    Custom.DodgeCap.Enable
+#        Enables an dodge cap
+#        Default: 0 - disabled (Blizzlike)
+#                 1 - enabled
+#
+#    Custom.DodgeCap.Value
+#        Max percentage of dodge allowed
+#        Default: 100
+#
+#     
+#
 ###################################################################################################################
 
 Custom.PetScale = 1
 Custom.DKStartTalentPoints.Enable = 0
+Custom.ArmorPenetrationCap.Enable = 0
+Custom.ArmorPenetrationCap.Value = 100
+Custom.DodgeCap.Enable = 0
+Custom.DodgeCap.Value = 100

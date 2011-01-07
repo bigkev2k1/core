@@ -23,6 +23,7 @@
 #include "Creature.h"
 #include "SharedDefines.h"
 #include "SpellAuras.h"
+#include "World.h"
 
 /*#######################################
 ########                         ########
@@ -585,6 +586,16 @@ void Player::UpdateDodgePercentage()
     // Dodge from rating
     value += GetRatingBonusValue(CR_DODGE);
     value = value < 0.0f ? 0.0f : value;
+
+	if(sWorld.getConfig(CONFIG_BOOL_ENABLE_DODGE_CAP))
+	{
+		float m_dodgeCap = sWorld.getConfig(CONFIG_FLOAT_DODGE_CAP);
+		if(value > m_dodgeCap)
+		{
+			value = m_dodgeCap;
+		}
+	}
+
     SetStatFloatValue(PLAYER_DODGE_PERCENTAGE, value);
 }
 
@@ -701,6 +712,15 @@ void Player::UpdateArmorPenetration()
             }
         }
     }
+
+	if(sWorld.getConfig(CONFIG_BOOL_ENABLE_ARP_CAP))
+	{
+		float m_arpCap = sWorld.getConfig(CONFIG_FLOAT_ARP_CAP);
+		if(m_armorPenetrationPct > m_arpCap)
+		{
+			m_armorPenetrationPct = m_arpCap;
+		}
+	}
 }
 
 void Player::ApplyManaRegenBonus(int32 amount, bool apply)

@@ -275,7 +275,13 @@ enum eConfigFloatValues
     CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS,
     CONFIG_FLOAT_GROUP_XP_DISTANCE,
     CONFIG_FLOAT_THREAT_RADIUS,
-    CONFIG_FLOAT_VALUE_COUNT
+    CONFIG_FLOAT_VALUE_COUNT,
+
+	//Darkice customs
+	//Stat caps
+	CONFIG_FLOAT_DODGE_CAP,
+	CONFIG_FLOAT_ARP_CAP
+	///Darkice customs
 };
 
 /// Configuration elements
@@ -341,6 +347,9 @@ enum eConfigBoolValues
     CONFIG_BOOL_PVP_ANNOUNCER,
     // DK Start TalentPoints
     CONFIG_BOOL_DK_TP,
+	// Stat caps
+	CONFIG_BOOL_ENABLE_ARP_CAP,
+	CONFIG_BOOL_ENABLE_DODGE_CAP,
     /// Darkrulerz' Customs
 
     CONFIG_BOOL_VALUE_COUNT

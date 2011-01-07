@@ -797,7 +797,13 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PVP_ANNOUNCER,"PvPAnnouncer.Enable", true);
     /*  DK Start TalentPoints   */
     setConfig(CONFIG_BOOL_DK_TP,"Custom.DKStartTalentPoints.Enable", false);
+	/* Stat caps */
+	setConfig(CONFIG_BOOL_ENABLE_ARP_CAP, "Custom.ArmorPenetrationCap.Enable", false);
+	setConfig(CONFIG_FLOAT_ARP_CAP,"Custom.ArmorPenetrationCap.Value", 100.0f);
+	setConfig(CONFIG_BOOL_ENABLE_DODGE_CAP, "Custom.DodgeCap.Enable", false);
+	setConfig(CONFIG_FLOAT_DODGE_CAP,"Custom.DodgeCap.Value", 100.0f);
     /// Darkrulerz' Customs
+
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
 
     setConfig(CONFIG_BOOL_ALLOW_FLIGHT_ON_OLD_MAPS, "AllowFlightOnOldMaps", false);
