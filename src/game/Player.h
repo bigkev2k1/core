@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1145,7 +1145,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool Create( uint32 guidlow, const std::string& name, uint8 race, uint8 class_, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair, uint8 outfitId );
 
-        void Update( uint32 time );
+        void Update( uint32 update_diff, uint32 time );
 
         static bool BuildEnumData( QueryResult * result,  WorldPacket * p_data );
 
@@ -1613,12 +1613,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         ObjectGuid const& GetSelectionGuid( ) const { return m_curSelectionGuid; }
         void SetSelectionGuid(ObjectGuid guid) { m_curSelectionGuid = guid; SetTargetGuid(guid); }
 
-        uint8 GetComboPoints() { return m_comboPoints; }
-        ObjectGuid const& GetComboTargetGuid() const { return m_comboTargetGuid; }
-
-        void AddComboPoints(Unit* target, int8 count);
-        void ClearComboPoints();
-        void SendComboPoints();
+        void SendComboPoints(ObjectGuid targetGuid, uint8 combopoints);
+        void SendPetComboPoints(Unit* pet, ObjectGuid targetGuid, uint8 combopoints);
 
         void SendCalendarResult(CalendarResponseResult result, std::string str);
 
@@ -1797,6 +1793,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void removeActionButton(uint8 spec, uint8 button);
         void SendActionButtons(uint32 state) const;
         void SendInitialActionButtons() const { SendActionButtons(1); }
+        void SendLockActionButtons() const;
         ActionButton const* GetActionButton(uint8 button);
 
         PvPInfo pvpInfo;
@@ -1902,7 +1899,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void UpdateDefenseBonusesMod();
         float GetMeleeCritFromAgility();
-        float GetDodgeFromAgility();
+        void GetDodgeFromAgility(float &diminishing, float &nondiminishing);
         float GetSpellCritFromIntellect();
         float OCTRegenHPPerSpirit();
         float OCTRegenMPPerSpirit();
@@ -2088,6 +2085,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _ApplyAllStatBonuses();
         void _RemoveAllStatBonuses();
         float GetArmorPenetrationPct() const { return m_armorPenetrationPct; }
+        int32 GetSpellPenetrationItemMod() const { return m_spellPenetrationItemMod; }
 
         void _ApplyWeaponDependentAuraMods(Item *item, WeaponAttackType attackType, bool apply);
         void _ApplyWeaponDependentAuraCritMod(Item *item, WeaponAttackType attackType, Aura* aura, bool apply);
@@ -2573,9 +2571,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_ExtraFlags;
         ObjectGuid m_curSelectionGuid;
 
-        ObjectGuid m_comboTargetGuid;
-        int8 m_comboPoints;
-
         QuestStatusMap mQuestStatus;
 
         SkillStatusMap mSkillStatus;
@@ -2604,6 +2599,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint16 m_baseFeralAP;
         uint16 m_baseManaRegen;
         float m_armorPenetrationPct;
+        int32 m_spellPenetrationItemMod;
 
         SpellModList m_spellMods[MAX_SPELLMOD];
         int32 m_SpellModRemoveCount;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@
 #include "Chat.h"
 #include "Database/DatabaseImpl.h"
 #include "Spell.h"
+#include "ScriptMgr.h"
 #include "SocialMgr.h"
 #include "AchievementMgr.h"
 #include "Mail.h"
@@ -163,7 +164,7 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint32 leve
         case RACE_DWARF:    SetTaximaskNode(6);  break;     // Dwarf
         case RACE_NIGHTELF: SetTaximaskNode(26);
                             SetTaximaskNode(27); break;     // Night Elf
-        case RACE_UNDEAD_PLAYER: SetTaximaskNode(11); break;// Undead
+        case RACE_UNDEAD:   SetTaximaskNode(11); break;     // Undead
         case RACE_TAUREN:   SetTaximaskNode(22); break;     // Tauren
         case RACE_GNOME:    SetTaximaskNode(6);  break;     // Gnome
         case RACE_TROLL:    SetTaximaskNode(23); break;     // Troll
@@ -438,8 +439,6 @@ Player::Player (WorldSession *session): Unit(), m_mover(this), m_camera(this), m
     if(GetSession()->GetSecurity() == SEC_PLAYER)
         SetAcceptWhispers(true);
 
-    m_comboPoints = 0;
-
     m_usedTalentCount = 0;
     m_questRewardTalentCount = 0;
 
@@ -575,6 +574,7 @@ Player::Player (WorldSession *session): Unit(), m_mover(this), m_camera(this), m
     m_baseFeralAP = 0;
     m_baseManaRegen = 0;
     m_armorPenetrationPct = 0.0f;
+    m_spellPenetrationItemMod = 0;
 
     // Honor System
     m_lastHonorUpdateTime = time(NULL);
@@ -1210,7 +1210,7 @@ void Player::SetDrunkValue(uint16 newDrunkenValue, uint32 itemId)
     SendMessageToSet(&data, true);
 }
 
-void Player::Update( uint32 p_time )
+void Player::Update( uint32 update_diff, uint32 p_time )
 {
     if(!IsInWorld())
         return;
@@ -1230,25 +1230,25 @@ void Player::Update( uint32 p_time )
 
     //used to implement delayed far teleports
     SetCanDelayTeleport(true);
-    Unit::Update( p_time );
+    Unit::Update( update_diff, p_time );
     SetCanDelayTeleport(false);
 
     // update player only attacks
     if(uint32 ranged_att = getAttackTimer(RANGED_ATTACK))
     {
-        setAttackTimer(RANGED_ATTACK, (p_time >= ranged_att ? 0 : ranged_att - p_time) );
+        setAttackTimer(RANGED_ATTACK, (update_diff >= ranged_att ? 0 : ranged_att - update_diff) );
     }
 
     if(uint32 off_att = getAttackTimer(OFF_ATTACK))
     {
-        setAttackTimer(OFF_ATTACK, (p_time >= off_att ? 0 : off_att - p_time) );
+        setAttackTimer(OFF_ATTACK, (update_diff >= off_att ? 0 : off_att - update_diff) );
     }
 
     time_t now = time (NULL);
 
     UpdatePvPFlag(now);
 
-    UpdateContestedPvP(p_time);
+    UpdateContestedPvP(update_diff);
 
     UpdateDuelFlag(now);
 
@@ -1269,7 +1269,7 @@ void Player::Update( uint32 p_time )
         while (iter != m_timedquests.end())
         {
             QuestStatusData& q_status = mQuestStatus[*iter];
-            if( q_status.m_timer <= p_time )
+            if( q_status.m_timer <= update_diff )
             {
                 uint32 quest_id  = *iter;
                 ++iter;                                     // current iter will be removed in FailQuest
@@ -1277,7 +1277,7 @@ void Player::Update( uint32 p_time )
             }
             else
             {
-                q_status.m_timer -= p_time;
+                q_status.m_timer -= update_diff;
                 if (q_status.uState != QUEST_NEW) q_status.uState = QUEST_CHANGED;
                 ++iter;
             }
@@ -1380,23 +1380,23 @@ void Player::Update( uint32 p_time )
 
     if (m_regenTimer)
     {
-        if(p_time >= m_regenTimer)
+        if(update_diff >= m_regenTimer)
             m_regenTimer = 0;
         else
-            m_regenTimer -= p_time;
+            m_regenTimer -= update_diff;
     }
 
     if (m_weaponChangeTimer > 0)
     {
-        if(p_time >= m_weaponChangeTimer)
+        if(update_diff >= m_weaponChangeTimer)
             m_weaponChangeTimer = 0;
         else
-            m_weaponChangeTimer -= p_time;
+            m_weaponChangeTimer -= update_diff;
     }
 
     if (m_zoneUpdateTimer > 0)
     {
-        if(p_time >= m_zoneUpdateTimer)
+        if(update_diff >= m_zoneUpdateTimer)
         {
             uint32 newzone, newarea;
             GetZoneAndAreaId(newzone,newarea);
@@ -1414,15 +1414,15 @@ void Player::Update( uint32 p_time )
             }
         }
         else
-            m_zoneUpdateTimer -= p_time;
+            m_zoneUpdateTimer -= update_diff;
     }
 
     if (m_timeSyncTimer > 0)
     {
-        if(p_time >= m_timeSyncTimer)
+        if(update_diff >= m_timeSyncTimer)
             SendTimeSync();
         else
-            m_timeSyncTimer -= p_time;
+            m_timeSyncTimer -= update_diff;
     }
 
     if (isAlive())
@@ -1435,7 +1435,7 @@ void Player::Update( uint32 p_time )
             RegenerateAll();
     }
 
-    if (!isAlive() && !HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
+    if (!isAlive() && !HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST) && getDeathState() != GHOULED )
         SetHealth(0);
 
     if (m_deathState == JUST_DIED)
@@ -1443,29 +1443,29 @@ void Player::Update( uint32 p_time )
 
     if(m_nextSave > 0)
     {
-        if(p_time >= m_nextSave)
+        if(update_diff >= m_nextSave)
         {
             // m_nextSave reseted in SaveToDB call
             SaveToDB();
             DETAIL_LOG("Player '%s' (GUID: %u) saved", GetName(), GetGUIDLow());
         }
         else
-            m_nextSave -= p_time;
+            m_nextSave -= update_diff;
     }
 
     //Handle Water/drowning
-    HandleDrowning(p_time);
+    HandleDrowning(update_diff);
 
     //Handle detect stealth players
     if (m_DetectInvTimer > 0)
     {
-        if (p_time >= m_DetectInvTimer)
+        if (update_diff >= m_DetectInvTimer)
         {
             HandleStealthedUnitsDetection();
             m_DetectInvTimer = 3000;
         }
         else
-            m_DetectInvTimer -= p_time;
+            m_DetectInvTimer -= update_diff;
     }
 
     // Played time
@@ -1479,14 +1479,14 @@ void Player::Update( uint32 p_time )
 
     if (m_drunk)
     {
-        m_drunkTimer += p_time;
+        m_drunkTimer += update_diff;
 
         if (m_drunkTimer > 10*IN_MILLISECONDS)
             HandleSobering();
     }
 
     // not auto-free ghost from body in instances
-    if(m_deathTimer > 0  && !GetMap()->Instanceable())
+    if(m_deathTimer > 0  && !GetMap()->Instanceable() && getDeathState() != GHOULED)
     {
         if(p_time >= m_deathTimer)
         {
@@ -1498,8 +1498,8 @@ void Player::Update( uint32 p_time )
             m_deathTimer -= p_time;
     }
 
-    UpdateEnchantTime(p_time);
-    UpdateHomebindTime(p_time);
+    UpdateEnchantTime(update_diff);
+    UpdateHomebindTime(update_diff);
 
     // group update
     SendUpdateToOutOfRangeGroupMembers();
@@ -3810,7 +3810,6 @@ void Player::_SaveSpellCooldowns()
     time_t curTime = time(NULL);
     time_t infTime = curTime + infinityCooldownDelayCheck;
 
-    /* copied following sql-code partly from achievementmgr */
     bool first_round = true;
     std::ostringstream ss;
 
@@ -4334,9 +4333,11 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
                         continue;
                     }
 
-                    MailDraft draft(subject, body);
+                    MailDraft draft;
                     if (mailTemplateId)
-                        draft = MailDraft(mailTemplateId, false);   // items already included
+                        draft.SetMailTemplate(mailTemplateId, false);// items already included
+                    else
+                        draft.SetSubjectAndBody(subject, body);
 
                     if (has_items)
                     {
@@ -4379,7 +4380,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
 
                     uint32 pl_account = sObjectMgr.GetPlayerAccountIdByGUID(playerguid);
 
-                    draft.AddMoney(money).SendReturnToSender(pl_account, playerguid, ObjectGuid(HIGHGUID_PLAYER, sender));
+                    draft.SetMoney(money).SendReturnToSender(pl_account, playerguid, ObjectGuid(HIGHGUID_PLAYER, sender));
                 }
                 while (resultMail->NextRow());
 
@@ -4563,7 +4564,8 @@ void Player::BuildPlayerRepop()
     GetMap()->Add(corpse);
 
     // convert player body to ghost
-    SetHealth( 1 );
+    if (getDeathState() != GHOULED)
+        SetHealth( 1 );
 
     SetMovement(MOVE_WATER_WALK);
     if(!GetSession()->isLogingOut())
@@ -4572,7 +4574,8 @@ void Player::BuildPlayerRepop()
     // BG - remove insignia related
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
 
-    SendCorpseReclaimDelay();
+    if (getDeathState() != GHOULED)
+        SendCorpseReclaimDelay();
 
     // to prevent cheating
     corpse->ResetGhostTime();
@@ -5201,35 +5204,36 @@ float Player::GetMeleeCritFromAgility()
     return crit*100.0f;
 }
 
-float Player::GetDodgeFromAgility()
+void Player::GetDodgeFromAgility(float &diminishing, float &nondiminishing)
 {
     // Table for base dodge values
-    float dodge_base[MAX_CLASSES] = {
-         0.0075f,   // Warrior
-         0.00652f,  // Paladin
-        -0.0545f,   // Hunter
-        -0.0059f,   // Rogue
-         0.03183f,  // Priest
-         0.0114f,   // DK
-         0.0167f,   // Shaman
-         0.034575f, // Mage
-         0.02011f,  // Warlock
+    static const float dodge_base[MAX_CLASSES] = {
+         0.036640f, // Warrior
+         0.034943f, // Paladin
+        -0.040873f, // Hunter
+         0.020957f, // Rogue
+         0.034178f, // Priest
+         0.036640f, // DK
+         0.021080f, // Shaman
+         0.036587f, // Mage
+         0.024211f, // Warlock
          0.0f,      // ??
-        -0.0187f    // Druid
+         0.056097f  // Druid
     };
-    // Crit/agility to dodge/agility coefficient multipliers
-    float crit_to_dodge[MAX_CLASSES] = {
-         1.1f,      // Warrior
-         1.0f,      // Paladin
-         1.6f,      // Hunter
-         2.0f,      // Rogue
-         1.0f,      // Priest
-         1.0f,      // DK?
-         1.0f,      // Shaman
-         1.0f,      // Mage
-         1.0f,      // Warlock
-         0.0f,      // ??
-         1.7f       // Druid
+
+    // Crit/agility to dodge/agility coefficient multipliers; 3.2.0 increased required agility by 15%
+    static const float crit_to_dodge[MAX_CLASSES] = {
+         0.85f/1.15f,    // Warrior
+         1.00f/1.15f,    // Paladin
+         1.11f/1.15f,    // Hunter
+         2.00f/1.15f,    // Rogue
+         1.00f/1.15f,    // Priest
+         0.85f/1.15f,    // DK
+         1.60f/1.15f,    // Shaman
+         1.00f/1.15f,    // Mage
+         0.97f/1.15f,    // Warlock (?)
+         0.0f,           // ??
+         2.00f/1.15f     // Druid
     };
 
     uint32 level = getLevel();
@@ -5237,13 +5241,16 @@ float Player::GetDodgeFromAgility()
 
     if (level>GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    // Dodge per agility for most classes equal crit per agility (but for some classes need apply some multiplier)
+    // Dodge per agility is proportional to crit per agility, which is available from DBC files
     GtChanceToMeleeCritEntry  const *dodgeRatio = sGtChanceToMeleeCritStore.LookupEntry((pclass-1)*GT_MAX_LEVEL + level-1);
     if (dodgeRatio==NULL || pclass > MAX_CLASSES)
-        return 0.0f;
+        return;
 
-    float dodge=dodge_base[pclass-1] + GetStat(STAT_AGILITY) * dodgeRatio->ratio * crit_to_dodge[pclass-1];
-    return dodge*100.0f;
+    float bonus_agility = floor(GetPosStat(STAT_AGILITY) + GetNegStat(STAT_AGILITY));
+    float base_agility = GetStat(STAT_AGILITY) - bonus_agility;
+    // calculate diminishing (green in char screen) and non-diminishing (white) contribution
+    diminishing = 100.0f * bonus_agility * dodgeRatio->ratio * crit_to_dodge[pclass-1];
+    nondiminishing = 100.0f * (dodge_base[pclass-1] + base_agility * dodgeRatio->ratio * crit_to_dodge[pclass-1]);
 }
 
 float Player::GetSpellCritFromIntellect()
@@ -6132,6 +6139,16 @@ void Player::SendActionButtons(uint32 state) const
 
     GetSession()->SendPacket( &data );
     DETAIL_LOG( "Action Buttons for '%u' spec '%u' Initialized", GetGUIDLow(), m_activeSpec );
+}
+
+void Player::SendLockActionButtons() const
+{
+    DETAIL_LOG( "Locking Action Buttons for '%u' spec '%u'", GetGUIDLow(), m_activeSpec);
+    WorldPacket data(SMSG_ACTION_BUTTONS, 1);
+    // sending 2 locks actions bars, neither user can remove buttons, nor client removes buttons at spell unlearn
+    // they remain locked until server sends new action buttons
+    data << uint8(2);
+    GetSession()->SendPacket( &data );
 }
 
 bool Player::IsActionButtonDataValid(uint8 button, uint32 action, uint8 type, Player* player, bool msg)
@@ -7353,13 +7370,14 @@ void Player::_ApplyItemBonuses(ItemPrototype const *proto, uint8 slot, bool appl
             case ITEM_MOD_SPELL_POWER:
                 ApplySpellPowerBonus(int32(val), apply);
                 break;
+            case ITEM_MOD_SPELL_PENETRATION:
+                ApplyModInt32Value(PLAYER_FIELD_MOD_TARGET_RESISTANCE, -int32(val), apply);
+                m_spellPenetrationItemMod += apply ? val : -val;
+                break;
             case ITEM_MOD_BLOCK_VALUE:
                 HandleBaseModValue(SHIELD_BLOCK_VALUE, FLAT_MOD, float(val), apply);
                 break;
-            case ITEM_MOD_SPELL_PENETRATION:
-                ApplyModInt32Value(PLAYER_FIELD_MOD_TARGET_RESISTANCE, int32(-val), apply);
-                break;
-            // depricated item mods
+            // deprecated item mods
             case ITEM_MOD_FERAL_ATTACK_POWER:
             case ITEM_MOD_SPELL_HEALING_DONE:
             case ITEM_MOD_SPELL_DAMAGE_DONE:
@@ -7456,14 +7474,14 @@ void Player::_ApplyItemBonuses(ItemPrototype const *proto, uint8 slot, bool appl
             ApplyFeralAPBonus(feral_bonus, apply);
     }
     // Druids get feral AP bonus from weapon dps (lso use DPS from ScalingStatValue)
-    if(getClass() == CLASS_DRUID)
+    if (getClass() == CLASS_DRUID)
     {
         int32 feral_bonus = proto->getFeralBonus(extraDPS);
         if (feral_bonus > 0)
             ApplyFeralAPBonus(feral_bonus, apply);
     }
 
-    if (!IsUseEquippedWeapon(attType))
+    if (!CanUseEquippedWeapon(attType))
         return;
 
     if (proto->Delay)
@@ -9356,7 +9374,7 @@ Item* Player::GetWeaponForAttack(WeaponAttackType attackType, bool nonbroken, bo
     if (!item || item->GetProto()->Class != ITEM_CLASS_WEAPON)
         return NULL;
 
-    if (useable && !IsUseEquippedWeapon(attackType))
+    if (useable && !CanUseEquippedWeapon(attackType))
         return NULL;
 
     if (nonbroken && item->IsBroken())
@@ -9374,7 +9392,7 @@ Item* Player::GetShield(bool useable) const
     if (!useable)
         return item;
 
-    if (item->IsBroken() || !IsUseEquippedWeapon(OFF_ATTACK))
+    if (item->IsBroken() || !CanUseEquippedWeapon(OFF_ATTACK))
         return NULL;
 
     return item;
@@ -12440,7 +12458,7 @@ void Player::SendEquipError( uint8 msg, Item* pItem, Item *pItem2, uint32 itemid
             case EQUIP_ERR_CANT_EQUIP_LEVEL_I:
             case EQUIP_ERR_PURCHASE_LEVEL_TOO_LOW:
             {
-                ItemPrototype const* proto = pItem ? pItem->GetProto() : sObjectMgr.GetItemPrototype(itemid);
+                ItemPrototype const* proto = pItem ? pItem->GetProto() : ObjectMgr::GetItemPrototype(itemid);
                 data << uint32(proto ? proto->RequiredLevel : 0);
                 break;
             }
@@ -12455,7 +12473,7 @@ void Player::SendEquipError( uint8 msg, Item* pItem, Item *pItem2, uint32 itemid
             case EQUIP_ERR_ITEM_MAX_LIMIT_CATEGORY_SOCKETED_EXCEEDED_IS:
             case EQUIP_ERR_ITEM_MAX_LIMIT_CATEGORY_EQUIPPED_EXCEEDED_IS:
             {
-                ItemPrototype const* proto = pItem ? pItem->GetProto() : sObjectMgr.GetItemPrototype(itemid);
+                ItemPrototype const* proto = pItem ? pItem->GetProto() : ObjectMgr::GetItemPrototype(itemid);
                 uint32 LimitCategory=proto ? proto->ItemLimitCategory : 0;
                 if (pItem)
                     // check unique-equipped on gems
@@ -12480,7 +12498,6 @@ void Player::SendEquipError( uint8 msg, Item* pItem, Item *pItem2, uint32 itemid
                         {
                             LimitCategory=pGem->ItemLimitCategory;
                             break;
-                         
                         }
                     }
 
@@ -13190,7 +13207,7 @@ void Player::PrepareGossipMenu(WorldObject *pSource, uint32 menuId)
                 }
                 case GOSSIP_OPTION_TRAINER:
                     // pet trainers not have spells in fact now
-                    /* FIXME: gossip menu with single unlearn pet talents option not show by some reason 
+                    /* FIXME: gossip menu with single unlearn pet talents option not show by some reason
                     if (pCreature->GetCreatureInfo()->trainer_type == TRAINER_TYPE_PETS)
                         hasMenuItem = false;
                     else */
@@ -13202,7 +13219,7 @@ void Player::PrepareGossipMenu(WorldObject *pSource, uint32 menuId)
                         hasMenuItem = false;
                     break;
                 case GOSSIP_OPTION_UNLEARNPETSKILLS:
-                    if (pCreature->GetCreatureInfo()->trainer_type != TRAINER_TYPE_PETS || pCreature->GetCreatureInfo()->trainer_class != CLASS_HUNTER) 
+                    if (pCreature->GetCreatureInfo()->trainer_type != TRAINER_TYPE_PETS || pCreature->GetCreatureInfo()->trainer_class != CLASS_HUNTER)
                         hasMenuItem = false;
                     else if (Pet * pet = GetPet())
                     {
@@ -14240,6 +14257,21 @@ void Player::RewardQuest(Quest const *pQuest, uint32 reward, Object* questGiver,
 
     if (announce)
         SendQuestReward(pQuest, XP, questGiver);
+
+    bool handled = false;
+
+    switch(questGiver->GetTypeId())
+    {
+        case TYPEID_UNIT:
+            handled = sScriptMgr.OnQuestRewarded(this, (Creature*)questGiver, pQuest);
+            break;
+        case TYPEID_GAMEOBJECT:
+            handled = sScriptMgr.OnQuestRewarded(this, (GameObject*)questGiver, pQuest);
+            break;
+    }
+
+    if (!handled && pQuest->GetQuestCompleteScript() != 0)
+        GetMap()->ScriptsStart(sQuestEndScripts, pQuest->GetQuestCompleteScript(), questGiver, this);
 
     // cast spells after mark quest complete (some spells have quest completed state reqyurements in spell_area data)
     if (pQuest->GetRewSpellCast() > 0)
@@ -15311,9 +15343,6 @@ void Player::SendQuestReward( Quest const *pQuest, uint32 XP, Object * questGive
     data << uint32(pQuest->GetBonusTalents());              // bonus talents
     data << uint32(0);                                      // arena points
     GetSession()->SendPacket( &data );
-
-    if (pQuest->GetQuestCompleteScript() != 0)
-        GetMap()->ScriptsStart(sQuestEndScripts, pQuest->GetQuestCompleteScript(), questGiver, this);
 }
 
 void Player::SendQuestFailed( uint32 quest_id )
@@ -17665,8 +17694,6 @@ void Player::_SaveAuras()
 
     if (auraHolders.empty())
         return;
-
-    /* copied following sql-code partly from achievementmgr */
 
     for(SpellAuraHolderMap::const_iterator itr = auraHolders.begin(); itr != auraHolders.end(); ++itr)
     {
@@ -20157,64 +20184,29 @@ void Player::InitPrimaryProfessions()
     SetFreePrimaryProfessions(sWorld.getConfig(CONFIG_UINT32_MAX_PRIMARY_TRADE_SKILL));
 }
 
-void Player::SendComboPoints()
+void Player::SendComboPoints(ObjectGuid targetGuid, uint8 combopoints)
 {
-    Unit *combotarget = ObjectAccessor::GetUnit(*this, m_comboTargetGuid);
+    Unit* combotarget = GetMap()->GetUnit(targetGuid);
     if (combotarget)
     {
         WorldPacket data(SMSG_UPDATE_COMBO_POINTS, combotarget->GetPackGUID().size()+1);
         data << combotarget->GetPackGUID();
-        data << uint8(m_comboPoints);
+        data << uint8(combopoints);
         GetSession()->SendPacket(&data);
     }
 }
 
-void Player::AddComboPoints(Unit* target, int8 count)
+void Player::SendPetComboPoints(Unit* pet, ObjectGuid targetGuid, uint8 combopoints)
 {
-    if(!count)
-        return;
-
-    // without combo points lost (duration checked in aura)
-    RemoveSpellsCausingAura(SPELL_AURA_RETAIN_COMBO_POINTS);
-
-    if(target->GetObjectGuid() == m_comboTargetGuid)
+    Unit* combotarget = pet ? pet->GetMap()->GetUnit(targetGuid) : NULL;
+    if (pet && combotarget)
     {
-        m_comboPoints += count;
+        WorldPacket data(SMSG_PET_UPDATE_COMBO_POINTS, combotarget->GetPackGUID().size()+pet->GetPackGUID().size()+1);
+        data << pet->GetPackGUID();
+        data << combotarget->GetPackGUID();
+        data << uint8(combopoints);
+        GetSession()->SendPacket(&data);
     }
-    else
-    {
-        if (!m_comboTargetGuid.IsEmpty())
-            if(Unit* target2 = ObjectAccessor::GetUnit(*this, m_comboTargetGuid))
-                target2->RemoveComboPointHolder(GetGUIDLow());
-
-        m_comboTargetGuid = target->GetObjectGuid();
-        m_comboPoints = count;
-
-        target->AddComboPointHolder(GetGUIDLow());
-    }
-
-    if (m_comboPoints > 5) m_comboPoints = 5;
-    if (m_comboPoints < 0) m_comboPoints = 0;
-
-    SendComboPoints();
-}
-
-void Player::ClearComboPoints()
-{
-    if (m_comboTargetGuid.IsEmpty())
-        return;
-
-    // without combopoints lost (duration checked in aura)
-    RemoveSpellsCausingAura(SPELL_AURA_RETAIN_COMBO_POINTS);
-
-    m_comboPoints = 0;
-
-    SendComboPoints();
-
-    if(Unit* target = ObjectAccessor::GetUnit(*this,m_comboTargetGuid))
-        target->RemoveComboPointHolder(GetGUIDLow());
-
-    m_comboTargetGuid.Clear();
 }
 
 void Player::SetGroup(Group *group, int8 subgroup)
@@ -21615,7 +21607,6 @@ void Player::ApplyGlyphs(bool apply)
         ApplyGlyph(i,apply);
 }
 
-
 bool Player::isTotalImmune()
 {
     AuraList const& immune = GetAurasByType(SPELL_AURA_SCHOOL_IMMUNITY);
@@ -22725,6 +22716,9 @@ void Player::ActivateSpec(uint8 specNum)
 
     SendActionButtons(2);
 
+    // prevent deletion of action buttons by client at spell unlearn or by player while spec change in progress
+    SendLockActionButtons();
+
     ApplyGlyphs(false);
 
     // copy of new talent spec (we will use it as model for converting current tlanet state to new)
@@ -22903,7 +22897,7 @@ void Player::BuildTeleportAckMsg( WorldPacket *data, float x, float y, float z, 
     *data << uint32(0);                                     // this value increments every time
     *data << uint32(m_movementInfo.GetMovementFlags());     // movement flags
     *data << uint16(0);                                     // 2.3.0
-    *data << uint32(getMSTime());                           // time
+    *data << uint32(WorldTimer::getMSTime());                           // time
     *data << x;
     *data << y;
     *data << z;
@@ -22921,7 +22915,7 @@ void Player::ResetTimeSync()
     m_timeSyncCounter = 0;
     m_timeSyncTimer = 0;
     m_timeSyncClient = 0;
-    m_timeSyncServer = getMSTime();
+    m_timeSyncServer = WorldTimer::getMSTime();
 }
 
 void Player::SendTimeSync()
@@ -22932,7 +22926,7 @@ void Player::SendTimeSync()
 
     // Schedule next sync in 10 sec
     m_timeSyncTimer = 10000;
-    m_timeSyncServer = getMSTime();
+    m_timeSyncServer = WorldTimer::getMSTime();
 }
 
 void Player::SendDuelCountdown(uint32 counter)

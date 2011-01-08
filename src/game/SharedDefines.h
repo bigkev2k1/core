@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,37 +34,46 @@ enum Gender
 // Race value is index in ChrRaces.dbc
 enum Races
 {
-    RACE_HUMAN          = 1,
-    RACE_ORC            = 2,
-    RACE_DWARF          = 3,
-    RACE_NIGHTELF       = 4,
-    RACE_UNDEAD_PLAYER  = 5,
-    RACE_TAUREN         = 6,
-    RACE_GNOME          = 7,
-    RACE_TROLL          = 8,
-    //RACE_GOBLIN         = 9,
-    RACE_BLOODELF       = 10,
-    RACE_DRAENEI        = 11,
-    //RACE_FEL_ORC        = 12,
-    //RACE_NAGA           = 13,
-    //RACE_BROKEN         = 14,
-    //RACE_SKELETON       = 15,
-    //RACE_VRYKUL         = 16,
-    //RACE_TUSKARR        = 17,
-    //RACE_FOREST_TROLL   = 18,
-    //RACE_TAUNKA         = 19,
-    //RACE_NORTHREND_SKELETON = 20,
-    //RACE_ICE_TROLL      = 21
+    RACE_HUMAN              = 1,
+    RACE_ORC                = 2,
+    RACE_DWARF              = 3,
+    RACE_NIGHTELF           = 4,
+    RACE_UNDEAD             = 5,
+    RACE_TAUREN             = 6,
+    RACE_GNOME              = 7,
+    RACE_TROLL              = 8,
+    RACE_GOBLIN             = 9,
+    RACE_BLOODELF           = 10,
+    RACE_DRAENEI            = 11,
+    RACE_FEL_ORC            = 12,
+    RACE_NAGA               = 13,
+    RACE_BROKEN             = 14,
+    RACE_SKELETON           = 15,
+    RACE_VRYKUL             = 16,
+    RACE_TUSKARR            = 17,
+    RACE_FOREST_TROLL       = 18,
+    RACE_TAUNKA             = 19,
+    RACE_NORTHREND_SKELETON = 20,
+    RACE_ICE_TROLL          = 21
 };
 
 // max+1 for player race
 #define MAX_RACES         12
 
 #define RACEMASK_ALL_PLAYABLE \
-    ((1<<(RACE_HUMAN-1))   |(1<<(RACE_ORC-1))          |(1<<(RACE_DWARF-1))   | \
-    (1<<(RACE_NIGHTELF-1))|(1<<(RACE_UNDEAD_PLAYER-1))|(1<<(RACE_TAUREN-1))  | \
-    (1<<(RACE_GNOME-1))   |(1<<(RACE_TROLL-1))        |(1<<(RACE_BLOODELF-1))| \
-    (1<<(RACE_DRAENEI-1)) )
+    ((1<<(RACE_HUMAN-1))    |(1<<(RACE_ORC-1))      |(1<<(RACE_DWARF-1))   | \
+    (1<<(RACE_NIGHTELF-1))  |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
+    (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
+    (1<<(RACE_DRAENEI-1)))
+
+// for most cases batter use ChrRace data for team check as more safe, but when need full mask of team can be use this defines.
+#define RACEMASK_ALLIANCE \
+    ((1<<(RACE_HUMAN-1))    |(1<<(RACE_DWARF-1))    |(1<<(RACE_NIGHTELF-1))| \
+    (1<<(RACE_GNOME-1))     |(1<<(RACE_DRAENEI-1)))
+
+#define RACEMASK_HORDE \
+    ((1<<(RACE_ORC-1))      |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
+    (1<<(RACE_TROLL-1))     |(1<<(RACE_BLOODELF-1)))
 
 // Class value is index in ChrClasses.dbc
 enum Classes
@@ -1115,6 +1124,15 @@ enum Targets
     TARGET_DIRECTLY_FORWARD            = 89,
     TARGET_NONCOMBAT_PET               = 90,
     TARGET_OWNED_VEHICLE               = 94,
+    TARGET_UNIT_DRIVER                 = 95,
+    TARGET_UNIT_PASSENGER_0            = 96,
+    TARGET_UNIT_PASSENGER_1            = 97,
+    TARGET_UNIT_PASSENGER_2            = 98,
+    TARGET_UNIT_PASSENGER_3            = 99,
+    TARGET_UNIT_PASSENGER_4            = 100,
+    TARGET_UNIT_PASSENGER_5            = 101,
+    TARGET_UNIT_PASSENGER_6            = 102,
+    TARGET_UNIT_PASSENGER_7            = 103,
     TARGET_IN_FRONT_OF_CASTER_30       = 104,
 };
 
@@ -2476,6 +2494,8 @@ enum DiminishingGroup
     DIMINISHING_SILENCE,                                    // From 2.3.0
     DIMINISHING_FREEZE_SLEEP,                               // Hunter's Freezing Trap
     DIMINISHING_BANISH,
+    // Warrior Specific
+    DIMINISHING_CHARGE,
     // Other
     // Don't Diminish, but limit duration to 10s
     DIMINISHING_LIMITONLY

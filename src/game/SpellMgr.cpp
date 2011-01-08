@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -669,6 +669,9 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
         case SPELL_EFFECT_HEAL_PCT:
         case SPELL_EFFECT_ENERGIZE_PCT:
             return true;
+
+        case SPELL_EFFECT_SCHOOL_DAMAGE:
+            return false;
 
             // non-positive aura use
         case SPELL_EFFECT_APPLY_AURA:
@@ -4218,6 +4221,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Hamstring - limit duration to 10s in PvP
             if (spellproto->SpellFamilyFlags & UI64LIT(0x00000000002))
                 return DIMINISHING_LIMITONLY;
+            // Charge - since 3.1.0
+            if (spellproto->Id == 7922)
+                return DIMINISHING_CHARGE;
             break;
         }
         case SPELLFAMILY_PRIEST:
